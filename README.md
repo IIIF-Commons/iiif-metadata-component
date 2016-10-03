@@ -1,0 +1,1 @@
+# iiif-metadata-component
