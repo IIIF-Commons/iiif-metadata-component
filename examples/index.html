@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>iiif-metadata-component</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="css/iiif-metadata-component.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsviews/0.9.75/jsviews.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/es6-promise/3.2.2/es6-promise.min.js"></script>
+    <script src="js/base-component.bundle.js"></script>
+    <script src="js/iiif-metadata-component.js"></script>
+    <script src="js/jquery-plugins.js"></script>
+    <script src="js/manifold.bundle.js"></script>
+</head>
+<body>
+    
+    <div id="component"></div>
+
+    <script>
+
+        var component;
+        
+        $(function() {
+
+            component = new IIIFComponents.MetadataComponent({
+                element: "#component"
+            });
+            
+            component.on('test', function(args) {
+                alert(args);
+            });
+            
+            component.test();
+            
+        });
+    </script>
+</body>
+</html>
