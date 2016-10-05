@@ -73,8 +73,8 @@ var IIIFComponents;
             this._$element.append(this._$canvasItems);
             this._$noData = $('<div class="noData">' + this.options.content.noData + '</div>');
             this._$element.append(this._$noData);
-            this._aggregateValuesConfig = this._readCSV(this.options.aggregateValues);
-            this._canvasExcludeConfig = this._readCSV(this.options.canvasExclude);
+            this._aggregateValues = this._readCSV(this.options.aggregateValues);
+            this._canvasExclude = this._readCSV(this.options.canvasExclude);
             return success;
         };
         MetadataComponent.prototype._getDefaultOptions = function () {
@@ -125,7 +125,7 @@ var IIIFComponents;
             this._$noData.hide();
             //var manifestRenderData: JQuery = $.extend(true, [], this._manifestMetadata);
             //var canvasRenderData: JQuery = $.extend(true, [], this._canvasMetadata);
-            this._aggregateValues(this._manifestMetadata, this._canvasMetadata);
+            this._aggregate(this._manifestMetadata, this._canvasMetadata);
             this._renderElement(this._$items, this._manifestMetadata, this.options.content.manifestHeader, this._canvasMetadata.length !== 0);
             this._renderElement(this._$canvasItems, this._canvasMetadata, this.options.content.canvasHeader, this._manifestMetadata.length !== 0);
         };
@@ -168,11 +168,13 @@ var IIIFComponents;
             });
             return flattened;
         };
-        MetadataComponent.prototype._aggregateValues = function (manifestMetadata, canvasMetadata) {
+        // merge any duplicate items into canvas metadata
+        // todo: needs to be more generic taking a single concatenated array
+        MetadataComponent.prototype._aggregate = function (manifestMetadata, canvasMetadata) {
             var _this = this;
-            if (this._aggregateValuesConfig.length) {
+            if (this._aggregateValues.length) {
                 $.each(canvasMetadata, function (index, canvasItem) {
-                    $.each(_this._aggregateValuesConfig, function (index, value) {
+                    $.each(_this._aggregateValues, function (index, value) {
                         value = _this._normalise(value);
                         if (_this._normalise(canvasItem.label) === value) {
                             var manifestItem = manifestMetadata.en().where(function (x) { return _this._normalise(x.label) === value; }).first();
@@ -289,8 +291,8 @@ var IIIFComponents;
         };
         MetadataComponent.prototype._getCanvasData = function (canvas) {
             var data = this.options.helper.getCanvasMetadata(canvas);
-            if (this._canvasExcludeConfig.length !== 0) {
-                data = this._exclude(data, this._canvasExcludeConfig);
+            if (this._canvasExclude.length !== 0) {
+                data = this._exclude(data, this._canvasExclude);
             }
             return this._flatten(data);
         };

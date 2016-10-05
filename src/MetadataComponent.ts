@@ -10,9 +10,9 @@ namespace IIIFComponents {
         private _$items: JQuery;
         private _$moreInfoItemTemplate: JQuery;
         private _$noData: JQuery;
-        private _aggregateValuesConfig: string[];
+        private _aggregateValues: string[];
         private _canvasMetadata: IMetadataItem[];
-        private _canvasExcludeConfig: string[];
+        private _canvasExclude: string[];
         private _manifestMetadata: IMetadataItem[];
 
         constructor(options: IMetadataComponentOptions) {
@@ -47,8 +47,8 @@ namespace IIIFComponents {
             this._$noData = $('<div class="noData">' + this.options.content.noData + '</div>');
             this._$element.append(this._$noData);
 
-            this._aggregateValuesConfig = this._readCSV(this.options.aggregateValues);
-            this._canvasExcludeConfig = this._readCSV(this.options.canvasExclude);
+            this._aggregateValues = this._readCSV(this.options.aggregateValues);
+            this._canvasExclude = this._readCSV(this.options.canvasExclude);
 
             return success;
         }
@@ -111,7 +111,7 @@ namespace IIIFComponents {
             //var manifestRenderData: JQuery = $.extend(true, [], this._manifestMetadata);
             //var canvasRenderData: JQuery = $.extend(true, [], this._canvasMetadata);
         
-            this._aggregateValues(this._manifestMetadata, this._canvasMetadata);
+            this._aggregate(this._manifestMetadata, this._canvasMetadata);
             this._renderElement(this._$items, this._manifestMetadata, this.options.content.manifestHeader, this._canvasMetadata.length !== 0);
             this._renderElement(this._$canvasItems, this._canvasMetadata, this.options.content.canvasHeader, this._manifestMetadata.length !== 0);
         }
@@ -164,13 +164,15 @@ namespace IIIFComponents {
             return flattened;
         }
 
-        private _aggregateValues(manifestMetadata: any[], canvasMetadata: any[]) {
+        // merge any duplicate items into canvas metadata
+        // todo: needs to be more generic taking a single concatenated array
+        private _aggregate(manifestMetadata: any[], canvasMetadata: any[]) {
 
-            if (this._aggregateValuesConfig.length) {
+            if (this._aggregateValues.length) {
 
                 $.each(canvasMetadata, (index: number, canvasItem: any) => {
 
-                    $.each(this._aggregateValuesConfig, (index: number, value: string) => {
+                    $.each(this._aggregateValues, (index: number, value: string) => {
 
                         value = this._normalise(value);
 
@@ -314,8 +316,8 @@ namespace IIIFComponents {
         private _getCanvasData(canvas: Manifesto.ICanvas) {
             var data = this.options.helper.getCanvasMetadata(canvas);
                 
-            if (this._canvasExcludeConfig.length !== 0) {
-                data = this._exclude(data, this._canvasExcludeConfig);
+            if (this._canvasExclude.length !== 0) {
+                data = this._exclude(data, this._canvasExclude);
             }
             
             return this._flatten(data);

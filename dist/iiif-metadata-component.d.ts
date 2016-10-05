@@ -54,9 +54,9 @@ declare namespace IIIFComponents {
         private _$items;
         private _$moreInfoItemTemplate;
         private _$noData;
-        private _aggregateValuesConfig;
+        private _aggregateValues;
         private _canvasMetadata;
-        private _canvasExcludeConfig;
+        private _canvasExclude;
         private _manifestMetadata;
         constructor(options: IMetadataComponentOptions);
         protected _init(): boolean;
@@ -65,7 +65,7 @@ declare namespace IIIFComponents {
         private _sort(data, displayOrder);
         private _exclude(data, excludeConfig);
         private _flatten(data);
-        private _aggregateValues(manifestMetadata, canvasMetadata);
+        private _aggregate(manifestMetadata, canvasMetadata);
         private _normalise(value);
         private _renderElement(element, data, header, renderHeader);
         private _buildHeader(label);
