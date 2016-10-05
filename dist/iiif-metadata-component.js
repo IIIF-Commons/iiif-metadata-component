@@ -108,26 +108,26 @@ var IIIFComponents;
             // if (this.extension.config.licenseMap){
             //     data = this.extension.helper.getMetadata(new Manifold.UriLabeller(this.extension.config.licenseMap));
             // } else {
-            this._manifestData = this.options.helper.getMetadata();
+            this._manifestMetadata = this.options.helper.getMetadata();
             //}
             if (this.options.displayOrder) {
-                this._manifestData = this._sort(this._manifestData, this._readCSV(this.options.displayOrder));
+                this._manifestMetadata = this._sort(this._manifestMetadata, this._readCSV(this.options.displayOrder));
             }
             if (this.options.manifestExclude) {
-                this._manifestData = this._exclude(this._manifestData, this._readCSV(this.options.manifestExclude));
+                this._manifestMetadata = this._exclude(this._manifestMetadata, this._readCSV(this.options.manifestExclude));
             }
-            this._manifestData = this._flatten(this._manifestData);
-            this._canvasData = this._getCanvasData(this.options.helper.getCurrentCanvas());
-            if (this._manifestData.length === 0 && this._canvasData.length === 0) {
+            this._manifestMetadata = this._flatten(this._manifestMetadata);
+            this._canvasMetadata = this._getCanvasData(this.options.helper.getCurrentCanvas());
+            if (this._manifestMetadata.length === 0 && this._canvasMetadata.length === 0) {
                 this._$noData.show();
                 return;
             }
             this._$noData.hide();
-            var manifestRenderData = $.extend(true, [], this._manifestData);
-            var canvasRenderData = $.extend(true, [], this._canvasData);
-            this._aggregateValues(manifestRenderData, canvasRenderData);
-            this._renderElement(this._$items, manifestRenderData, this.options.content.manifestHeader, canvasRenderData.length !== 0);
-            this._renderElement(this._$canvasItems, canvasRenderData, this.options.content.canvasHeader, manifestRenderData.length !== 0);
+            //var manifestRenderData: JQuery = $.extend(true, [], this._manifestMetadata);
+            //var canvasRenderData: JQuery = $.extend(true, [], this._canvasMetadata);
+            this._aggregateValues(this._manifestMetadata, this._canvasMetadata);
+            this._renderElement(this._$items, this._manifestMetadata, this.options.content.manifestHeader, this._canvasMetadata.length !== 0);
+            this._renderElement(this._$canvasItems, this._canvasMetadata, this.options.content.canvasHeader, this._manifestMetadata.length !== 0);
         };
         MetadataComponent.prototype._sort = function (data, displayOrder) {
             // sort items
@@ -168,21 +168,25 @@ var IIIFComponents;
             });
             return flattened;
         };
-        MetadataComponent.prototype._aggregateValues = function (fromData, toData) {
+        MetadataComponent.prototype._aggregateValues = function (manifestMetadata, canvasMetadata) {
             var _this = this;
-            if (this._aggregateValuesConfig.length !== 0) {
-                $.each(toData, function (index, item) {
+            if (this._aggregateValuesConfig.length) {
+                $.each(canvasMetadata, function (index, canvasItem) {
                     $.each(_this._aggregateValuesConfig, function (index, value) {
-                        if (item.label.toLowerCase() === value) {
-                            var manifestIndex = fromData.en().where(function (x) { return x.label.toLowerCase() === value.toLowerCase(); }).first().index();
-                            if (manifestIndex !== -1) {
-                                var data = fromData.splice(manifestIndex, 1)[0];
-                                item.value = data.value + item.value;
+                        value = _this._normalise(value);
+                        if (_this._normalise(canvasItem.label) === value) {
+                            var manifestItem = manifestMetadata.en().where(function (x) { return _this._normalise(x.label) === value; }).first();
+                            if (manifestItem) {
+                                canvasItem.value = manifestItem.value + canvasItem.value;
+                                manifestMetadata.remove(manifestItem);
                             }
                         }
                     });
                 });
             }
+        };
+        MetadataComponent.prototype._normalise = function (value) {
+            return value.toLowerCase().replace(/ /g, "");
         };
         MetadataComponent.prototype._renderElement = function (element, data, header, renderHeader) {
             var _this = this;
@@ -269,8 +273,8 @@ var IIIFComponents;
             });
         };
         MetadataComponent.prototype._copyValueForLabel = function (label) {
-            var manifestItems = this._flatten(this._manifestData);
-            var canvasItems = this._flatten(this._canvasData);
+            var manifestItems = this._flatten(this._manifestMetadata);
+            var canvasItems = this._flatten(this._canvasMetadata);
             var $matchingItems = $(manifestItems.concat(canvasItems))
                 .filter(function (i, md) { return md.label && label && md.label.toLowerCase() === label.toLowerCase(); });
             var text = $matchingItems.map(function (i, md) { return md.value; }).get().join('');

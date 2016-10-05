@@ -26,11 +26,11 @@
         $(function() {
             
             // http://wellcomelibrary.org/iiif/b18035978/manifest (Biocrats)
-            // http://wellcomelibrary.org/iiif/b18035723/manifest (Wunder der Vererbung)
-            // http://wellcomelibrary.org/iiif/b1948799x/manifest (Crick's Letter')
+            // https://iiif.riksarkivet.se/arkis!C0000263/manifest (canvas metadata)
+            // https://iiif.riksarkivet.se/arkis!F0001185/manifest (merge source reference)
 
             Manifold.loadManifest({
-                iiifResourceUri: 'http://wellcomelibrary.org/iiif/b18035978/manifest',
+                iiifResourceUri: 'https://iiif.riksarkivet.se/arkis!F0001185/manifest',
                 collectionIndex: 0,
                 manifestIndex: 0,
                 sequenceIndex: 0,
@@ -40,6 +40,7 @@
                 helper = h;
                 
                 component = new IIIFComponents.MetadataComponent({
+                    aggregateValues: "källhänvisning, source reference",
                     element: "#metadata",
                     helper: h,
                     sanitizer: function(html) {

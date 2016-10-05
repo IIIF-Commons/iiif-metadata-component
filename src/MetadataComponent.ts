@@ -11,9 +11,9 @@ namespace IIIFComponents {
         private _$moreInfoItemTemplate: JQuery;
         private _$noData: JQuery;
         private _aggregateValuesConfig: string[];
-        private _canvasData: IMetadataItem[];
+        private _canvasMetadata: IMetadataItem[];
         private _canvasExcludeConfig: string[];
-        private _manifestData: IMetadataItem[];
+        private _manifestMetadata: IMetadataItem[];
 
         constructor(options: IMetadataComponentOptions) {
             super(options);
@@ -55,8 +55,8 @@ namespace IIIFComponents {
         
         protected _getDefaultOptions(): IMetadataComponentOptions {
             return <IMetadataComponentOptions>{
-                aggregateValues: "",
-                canvasExclude: "", // csv of items to exclude from canvas metadata display
+                aggregateValues: "",                            // csv of metadata items to merge into a single item
+                canvasExclude: "",                              // csv of items to exclude from canvas metadata display
                 content: <IContent>{
                     attribution: "Attribution",
                     canvasHeader: "About the image",
@@ -71,12 +71,12 @@ namespace IIIFComponents {
                     noData: "No data to display"
                 },
                 copyToClipboardEnabled: false,
-                displayOrder: "", // csv of items to override display order
+                displayOrder: "",                               // csv of items to override display order
                 helper: null,
                 limit: 4,
                 limitType: LimitType.LINES.toString(),
-                manifestExclude: "", // csv of items to exclude from manifest metadata display
-                sanitizer: function(html) { return html } // see example for how to pass in a sanitizer
+                manifestExclude: "",                            // csv of items to exclude from manifest metadata display
+                sanitizer: function(html) { return html }       // see example for how to pass in a sanitizer
             }
         }
 
@@ -86,34 +86,34 @@ namespace IIIFComponents {
             // if (this.extension.config.licenseMap){
             //     data = this.extension.helper.getMetadata(new Manifold.UriLabeller(this.extension.config.licenseMap));
             // } else {
-                this._manifestData = this.options.helper.getMetadata();
+                this._manifestMetadata = this.options.helper.getMetadata();
             //}
 
             if (this.options.displayOrder) {
-                this._manifestData = this._sort(this._manifestData, this._readCSV(this.options.displayOrder));
+                this._manifestMetadata = this._sort(this._manifestMetadata, this._readCSV(this.options.displayOrder));
             }
             
             if (this.options.manifestExclude) {
-                this._manifestData = this._exclude(this._manifestData, this._readCSV(this.options.manifestExclude));
+                this._manifestMetadata = this._exclude(this._manifestMetadata, this._readCSV(this.options.manifestExclude));
             }
             
-            this._manifestData = this._flatten(this._manifestData);
+            this._manifestMetadata = this._flatten(this._manifestMetadata);
 
-            this._canvasData = this._getCanvasData(this.options.helper.getCurrentCanvas());
+            this._canvasMetadata = this._getCanvasData(this.options.helper.getCurrentCanvas());
 
-            if (this._manifestData.length === 0 && this._canvasData.length === 0){
+            if (this._manifestMetadata.length === 0 && this._canvasMetadata.length === 0){
                 this._$noData.show();
                 return;
             }
 
             this._$noData.hide();
 
-            var manifestRenderData = $.extend(true, [], this._manifestData);
-            var canvasRenderData = $.extend(true, [], this._canvasData);
+            //var manifestRenderData: JQuery = $.extend(true, [], this._manifestMetadata);
+            //var canvasRenderData: JQuery = $.extend(true, [], this._canvasMetadata);
         
-            this._aggregateValues(manifestRenderData, canvasRenderData);
-            this._renderElement(this._$items, manifestRenderData, this.options.content.manifestHeader, canvasRenderData.length !== 0);
-            this._renderElement(this._$canvasItems, canvasRenderData, this.options.content.canvasHeader, manifestRenderData.length !== 0);
+            this._aggregateValues(this._manifestMetadata, this._canvasMetadata);
+            this._renderElement(this._$items, this._manifestMetadata, this.options.content.manifestHeader, this._canvasMetadata.length !== 0);
+            this._renderElement(this._$canvasItems, this._canvasMetadata, this.options.content.canvasHeader, this._manifestMetadata.length !== 0);
         }
 
         private _sort(data: IMetadataItem[], displayOrder: string[]) {
@@ -164,21 +164,33 @@ namespace IIIFComponents {
             return flattened;
         }
 
-        private _aggregateValues(fromData: any[], toData: any[]) {
-            if (this._aggregateValuesConfig.length !== 0) {
-                $.each(toData, (index: number, item: any) => {
-                    $.each(this._aggregateValuesConfig, (index: number, value: string) => {
-                        if (item.label.toLowerCase() === value) {
-                            var manifestIndex: number = fromData.en().where(x => x.label.toLowerCase() === value.toLowerCase()).first().index();
+        private _aggregateValues(manifestMetadata: any[], canvasMetadata: any[]) {
 
-                            if (manifestIndex !== -1) {
-                                var data = fromData.splice(manifestIndex, 1)[0];
-                                item.value = data.value + item.value;
+            if (this._aggregateValuesConfig.length) {
+
+                $.each(canvasMetadata, (index: number, canvasItem: any) => {
+
+                    $.each(this._aggregateValuesConfig, (index: number, value: string) => {
+
+                        value = this._normalise(value);
+
+                        if (this._normalise(canvasItem.label) === value) {
+                            var manifestItem = manifestMetadata.en().where(x => this._normalise(x.label) === value).first();
+
+                            if (manifestItem) {
+                                canvasItem.value = manifestItem.value + canvasItem.value;
+                                manifestMetadata.remove(manifestItem);
                             }
-                        }
+                        }  
+
                     });
+
                 });
             }
+        }
+
+        private _normalise(value: string): string {
+            return value.toLowerCase().replace(/ /g, "");
         }
 
         private _renderElement(element: JQuery, data: any, header: string, renderHeader: boolean) {
@@ -280,8 +292,8 @@ namespace IIIFComponents {
         }
         
         private _copyValueForLabel(label: string) {
-            var manifestItems = this._flatten(this._manifestData);
-            var canvasItems = this._flatten(this._canvasData);
+            var manifestItems = this._flatten(this._manifestMetadata);
+            var canvasItems = this._flatten(this._canvasMetadata);
             var $matchingItems = $(manifestItems.concat(canvasItems))
                 .filter(function (i, md: any) { return md.label && label && md.label.toLowerCase() === label.toLowerCase(); });
 
