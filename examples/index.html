@@ -7,32 +7,72 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsviews/0.9.75/jsviews.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/es6-promise/3.2.2/es6-promise.min.js"></script>
+    <script src="js/manifold.bundle.js"></script>
     <script src="js/base-component.bundle.js"></script>
     <script src="js/iiif-metadata-component.js"></script>
     <script src="js/jquery-plugins.js"></script>
-    <script src="js/manifold.bundle.js"></script>
+    <script src="js/sanitize.js"></script>
 </head>
 <body>
     
-    <div id="component"></div>
+    <div id="metadata" class="iiif-metadata-component">
+        loading...
+    </div>
 
     <script>
 
-        var component;
+        var helper, component, multiSelectState;
         
         $(function() {
+            
+            // http://wellcomelibrary.org/iiif/b18035978/manifest (Biocrats)
+            // http://wellcomelibrary.org/iiif/b18035723/manifest (Wunder der Vererbung)
+            // http://wellcomelibrary.org/iiif/b1948799x/manifest (Crick's Letter')
 
-            component = new IIIFComponents.MetadataComponent({
-                element: "#component"
+            Manifold.loadManifest({
+                iiifResourceUri: 'http://wellcomelibrary.org/iiif/b18035978/manifest',
+                collectionIndex: 0,
+                manifestIndex: 0,
+                sequenceIndex: 0,
+                canvasIndex: 0
+            }).then(function(h){
+                
+                helper = h;
+                
+                component = new IIIFComponents.MetadataComponent({
+                    element: "#metadata",
+                    helper: h,
+                    sanitizer: function(html) {
+                        var elem = document.createElement('div');
+                        var $elem = $(elem);
+
+                        $elem.html(html);
+
+                        var s = new Sanitize({
+                            elements:   ['a', 'b', 'br', 'img', 'p', 'i', 'span'],
+                            attributes: {
+                                a: ['href'],
+                                img: ['src', 'alt']
+                            },
+                            protocols:  {
+                                a: { href: ['http', 'https'] }
+                            }
+                        });
+
+                        $elem.html(s.clean_node(elem));
+
+                        return $elem.html();
+                    }
+                });
+
+                component.databind();
+
+            }).catch(function() {
+                console.error('failed to load manifest');
             });
-            
-            component.on('test', function(args) {
-                alert(args);
-            });
-            
-            component.test();
-            
         });
+
     </script>
+
 </body>
 </html>

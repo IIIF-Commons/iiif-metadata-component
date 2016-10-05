@@ -2,3 +2,71 @@ body {
   font-family: Sans-Serif;
   padding: 20px;
 }
+.iiif-metadata-component .noData {
+  padding: 0 10px 20px 10px;
+}
+.iiif-metadata-component .items {
+  padding: 0 10px 20px 10px;
+}
+.iiif-metadata-component .items .header {
+  color: #14a4c3;
+  border-bottom: 1px solid #14a4c3;
+  font-size: 11px;
+  margin: 15px 10px 0 0;
+  text-transform: uppercase;
+}
+.iiif-metadata-component .items .item {
+  padding: 0;
+  margin: 0 0 20px 0;
+}
+.iiif-metadata-component .items .item .header {
+  color: #9a9a9a;
+  border-bottom: 1px solid #343434;
+  font-size: 11px;
+  margin: 15px 10px 0 0;
+  text-transform: uppercase;
+}
+.iiif-metadata-component .items .item .header .copyText {
+  position: relative;
+  float: right;
+  display: none;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  background-image: url('../img/copy.png');
+}
+.iiif-metadata-component .items .item .header .copiedText {
+  display: none;
+  position: absolute;
+  top: 18px;
+  right: -10px;
+  white-space: nowrap;
+  padding: 4px;
+  text-transform: none;
+  background-color: #343434;
+  z-index: 1;
+  border: 1px solid #9a9a9a;
+  border-radius: 2px;
+  color: #000;
+}
+.iiif-metadata-component .items .item .text {
+  color: #000;
+  margin: 5px 10px 0 0;
+  overflow: hidden;
+  word-wrap: break-word;
+  line-height: 1.6em;
+}
+.iiif-metadata-component .items .item .text a.toggle {
+  color: #14a4c3;
+  font-weight: normal;
+}
+.iiif-metadata-component .items .item .text a.toggle:hover {
+  color: #22c5e8;
+}
+.iiif-metadata-component .items .item .text a.toggle.more,
+.iiif-metadata-component .items .item .text a.toggle.less {
+  font-variant: small-caps;
+}
+.iiif-metadata-component .items .item .text img {
+  max-width: 100px;
+}
