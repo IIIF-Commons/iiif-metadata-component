@@ -1,7 +1,7 @@
 import IMetadataItem = Manifold.IMetadataItem;
 
 namespace IIIFComponents {
-    export class MetadataComponent extends _Components.BaseComponent {
+    export class MetadataComponent extends _Components.BaseComponent implements IMetadataComponent{
 
         public options: IMetadataComponentOptions;
 

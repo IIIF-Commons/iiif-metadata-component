@@ -3174,6 +3174,11 @@ declare namespace IIIFComponents {
 /// <reference path="LimitType.d.ts" />
 
 declare namespace IIIFComponents {
+    interface IMetadataComponent extends _Components.IBaseComponent {
+    }
+}
+
+declare namespace IIIFComponents {
     interface IContent {
         attribution: string;
         canvasHeader: string;
@@ -3203,7 +3208,7 @@ declare namespace IIIFComponents {
 
 import IMetadataItem = Manifold.IMetadataItem;
 declare namespace IIIFComponents {
-    class MetadataComponent extends _Components.BaseComponent {
+    class MetadataComponent extends _Components.BaseComponent implements IMetadataComponent {
         options: IMetadataComponentOptions;
         private _$canvasItems;
         private _$copyTextTemplate;
