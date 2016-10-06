@@ -90,11 +90,11 @@ namespace IIIFComponents {
             //}
 
             if (this.options.displayOrder) {
-                this._manifestMetadata = this._sort(this._manifestMetadata, this._readCSV(this.options.displayOrder));
+                this._manifestMetadata = this._sort(<IMetadataItem[]>this._manifestMetadata[0].value, this._readCSV(this.options.displayOrder));
             }
             
             if (this.options.manifestExclude) {
-                this._manifestMetadata = this._exclude(this._manifestMetadata, this._readCSV(this.options.manifestExclude));
+                this._manifestMetadata = this._exclude(<IMetadataItem[]>this._manifestMetadata[0].value, this._readCSV(this.options.manifestExclude));
             }
             
             this._manifestMetadata = this._flatten(this._manifestMetadata);
@@ -121,7 +121,7 @@ namespace IIIFComponents {
             var sorted: IMetadataItem[] = [];
 
             $.each(displayOrder, (index: number, item: string) => {
-                var match: IMetadataItem = data.en().where((x => x.label.toLowerCase() === item)).first();
+                var match: IMetadataItem = data.en().where((x => this._normalise(x.label) === item)).first();
                 if (match){
                     sorted.push(match);
                     data.remove(match);
@@ -129,27 +129,26 @@ namespace IIIFComponents {
             });
 
             // add remaining items that were not in the displayOrder.
-            $.each(data, (item: IMetadataItem) => {
+            $.each(data, (index: number, item: IMetadataItem) => {
                 sorted.push(item);
             });
 
             return sorted;
         }
 
-        private _exclude(data: IMetadataItem[], excludeConfig: string[]) {
-            var excluded: IMetadataItem[] = $.extend(true, [], data);
-            
+        private _exclude(data: IMetadataItem[], excludeConfig: string[]): IMetadataItem[] {
+
             $.each(excludeConfig, (index: number, item: string) => {
-                var match: IMetadataItem = excluded.en().where((x => x.label.toLowerCase() === item)).first();
+                var match: IMetadataItem = data.en().where((x => this._normalise(x.label) === item)).first();
                 if (match){
-                    excluded.remove(match);
+                    data.remove(match);
                 }
             });
             
-            return excluded;
+            return data;
         }
         
-        private _flatten(data: IMetadataItem[]) {
+        private _flatten(data: IMetadataItem[]): IMetadataItem[] {
             // flatten metadata into array.
             var flattened: IMetadataItem[] = [];
 
@@ -294,8 +293,8 @@ namespace IIIFComponents {
         }
         
         private _copyValueForLabel(label: string) {
-            var manifestItems = this._flatten(this._manifestMetadata);
-            var canvasItems = this._flatten(this._canvasMetadata);
+            var manifestItems: IMetadataItem[] = this._flatten(this._manifestMetadata);
+            var canvasItems: IMetadataItem[] = this._flatten(this._canvasMetadata);
             var $matchingItems = $(manifestItems.concat(canvasItems))
                 .filter(function (i, md: any) { return md.label && label && md.label.toLowerCase() === label.toLowerCase(); });
 
@@ -313,11 +312,11 @@ namespace IIIFComponents {
             }, 2000);
         }
 
-        private _getCanvasData(canvas: Manifesto.ICanvas) {
-            var data = this.options.helper.getCanvasMetadata(canvas);
+        private _getCanvasData(canvas: Manifesto.ICanvas): IMetadataItem[] {
+            var data: IMetadataItem[] = this.options.helper.getCanvasMetadata(canvas);
                 
             if (this._canvasExclude.length !== 0) {
-                data = this._exclude(data, this._canvasExclude);
+                this._exclude(<IMetadataItem[]>data[0].value, this._canvasExclude);
             }
             
             return this._flatten(data);

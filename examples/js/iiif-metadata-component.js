@@ -111,10 +111,10 @@ var IIIFComponents;
             this._manifestMetadata = this.options.helper.getMetadata();
             //}
             if (this.options.displayOrder) {
-                this._manifestMetadata = this._sort(this._manifestMetadata, this._readCSV(this.options.displayOrder));
+                this._manifestMetadata = this._sort(this._manifestMetadata[0].value, this._readCSV(this.options.displayOrder));
             }
             if (this.options.manifestExclude) {
-                this._manifestMetadata = this._exclude(this._manifestMetadata, this._readCSV(this.options.manifestExclude));
+                this._manifestMetadata = this._exclude(this._manifestMetadata[0].value, this._readCSV(this.options.manifestExclude));
             }
             this._manifestMetadata = this._flatten(this._manifestMetadata);
             this._canvasMetadata = this._getCanvasData(this.options.helper.getCurrentCanvas());
@@ -130,30 +130,31 @@ var IIIFComponents;
             this._renderElement(this._$canvasItems, this._canvasMetadata, this.options.content.canvasHeader, this._manifestMetadata.length !== 0);
         };
         MetadataComponent.prototype._sort = function (data, displayOrder) {
+            var _this = this;
             // sort items
             var sorted = [];
             $.each(displayOrder, function (index, item) {
-                var match = data.en().where((function (x) { return x.label.toLowerCase() === item; })).first();
+                var match = data.en().where((function (x) { return _this._normalise(x.label) === item; })).first();
                 if (match) {
                     sorted.push(match);
                     data.remove(match);
                 }
             });
             // add remaining items that were not in the displayOrder.
-            $.each(data, function (item) {
+            $.each(data, function (index, item) {
                 sorted.push(item);
             });
             return sorted;
         };
         MetadataComponent.prototype._exclude = function (data, excludeConfig) {
-            var excluded = $.extend(true, [], data);
+            var _this = this;
             $.each(excludeConfig, function (index, item) {
-                var match = excluded.en().where((function (x) { return x.label.toLowerCase() === item; })).first();
+                var match = data.en().where((function (x) { return _this._normalise(x.label) === item; })).first();
                 if (match) {
-                    excluded.remove(match);
+                    data.remove(match);
                 }
             });
-            return excluded;
+            return data;
         };
         MetadataComponent.prototype._flatten = function (data) {
             // flatten metadata into array.
@@ -292,7 +293,7 @@ var IIIFComponents;
         MetadataComponent.prototype._getCanvasData = function (canvas) {
             var data = this.options.helper.getCanvasMetadata(canvas);
             if (this._canvasExclude.length !== 0) {
-                data = this._exclude(data, this._canvasExclude);
+                this._exclude(data[0].value, this._canvasExclude);
             }
             return this._flatten(data);
         };

@@ -12,6 +12,7 @@
     <script src="js/iiif-metadata-component.js"></script>
     <script src="js/jquery-plugins.js"></script>
     <script src="js/sanitize.js"></script>
+    <script src="js/utils.js"></script>
 </head>
 <body>
     
@@ -41,6 +42,10 @@
                 
                 component = new IIIFComponents.MetadataComponent({
                     aggregateValues: "källhänvisning, source reference",
+                    //canvasExclude: "Image ID",
+                    //manifestExclude: "Date",
+                    //copyToClipboardEnabled: true,
+                    //displayOrder: "Remark, Date, Image Id, Serie",
                     element: "#metadata",
                     helper: h,
                     sanitizer: function(html) {
