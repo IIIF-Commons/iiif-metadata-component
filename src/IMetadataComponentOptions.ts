@@ -22,7 +22,7 @@ namespace IIIFComponents{
         displayOrder: string;                   // csv of items to override display order
         helper: Manifold.IHelper;
         limit: number;
-        limitType: LimitType;
+        limitType: MetadataComponentOptions.LimitType;
         manifestExclude: string;                // csv of items to exclude from manifest metadata display
         sanitizer: (html: string) => string;    // see example for how to pass in a sanitizer
     }

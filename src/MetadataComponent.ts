@@ -74,7 +74,7 @@ namespace IIIFComponents {
                 displayOrder: "",
                 helper: null,
                 limit: 4,
-                limitType: LimitType.LINES,
+                limitType: MetadataComponentOptions.LimitType.LINES,
                 manifestExclude: "",
                 sanitizer: function(html) { return html }
             }
@@ -206,9 +206,9 @@ namespace IIIFComponents {
                 $.each(data, (index: number, item: any) => {
                     var built = this._buildItem(item);
                     element.append(built);
-                    if (this.options.limitType === LimitType.LINES) {
+                    if (this.options.limitType === MetadataComponentOptions.LimitType.LINES) {
                         built.find('.text').toggleExpandTextByLines(this.options.limit, this.options.content.less, this.options.content.more);
-                    } else if (this.options.limitType === LimitType.CHARS) {
+                    } else if (this.options.limitType === MetadataComponentOptions.LimitType.CHARS) {
                         built.find('.text').ellipsisHtmlFixed(this.options.limit, null);
                     }
                 });

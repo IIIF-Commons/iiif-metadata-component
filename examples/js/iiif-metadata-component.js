@@ -24,16 +24,26 @@ var __extends = (this && this.__extends) || function (d, b) {
 };
 var IIIFComponents;
 (function (IIIFComponents) {
-    var LimitType = (function (_super) {
-        __extends(LimitType, _super);
-        function LimitType() {
-            _super.apply(this, arguments);
-        }
-        LimitType.LINES = new LimitType("lines");
-        LimitType.CHARS = new LimitType("chars");
-        return LimitType;
-    }(IIIFComponents.StringValue));
-    IIIFComponents.LimitType = LimitType;
+    var MetadataComponentOptions;
+    (function (MetadataComponentOptions) {
+        var LimitType = (function (_super) {
+            __extends(LimitType, _super);
+            function LimitType() {
+                _super.apply(this, arguments);
+            }
+            // todo: use getters when ES3 target is no longer required.
+            LimitType.prototype.lines = function () {
+                return new LimitType(LimitType.LINES.toString());
+            };
+            LimitType.prototype.chars = function () {
+                return new LimitType(LimitType.CHARS.toString());
+            };
+            LimitType.LINES = new LimitType("lines");
+            LimitType.CHARS = new LimitType("chars");
+            return LimitType;
+        }(IIIFComponents.StringValue));
+        MetadataComponentOptions.LimitType = LimitType;
+    })(MetadataComponentOptions = IIIFComponents.MetadataComponentOptions || (IIIFComponents.MetadataComponentOptions = {}));
 })(IIIFComponents || (IIIFComponents = {}));
 
 /// <reference path="./StringValue.ts" />
@@ -100,7 +110,7 @@ var IIIFComponents;
                 displayOrder: "",
                 helper: null,
                 limit: 4,
-                limitType: IIIFComponents.LimitType.LINES,
+                limitType: IIIFComponents.MetadataComponentOptions.LimitType.LINES,
                 manifestExclude: "",
                 sanitizer: function (html) { return html; }
             };
@@ -203,10 +213,10 @@ var IIIFComponents;
                 $.each(data, function (index, item) {
                     var built = _this._buildItem(item);
                     element.append(built);
-                    if (_this.options.limitType === IIIFComponents.LimitType.LINES) {
+                    if (_this.options.limitType === IIIFComponents.MetadataComponentOptions.LimitType.LINES) {
                         built.find('.text').toggleExpandTextByLines(_this.options.limit, _this.options.content.less, _this.options.content.more);
                     }
-                    else if (_this.options.limitType === IIIFComponents.LimitType.CHARS) {
+                    else if (_this.options.limitType === IIIFComponents.MetadataComponentOptions.LimitType.CHARS) {
                         built.find('.text').ellipsisHtmlFixed(_this.options.limit, null);
                     }
                 });

@@ -3163,10 +3163,12 @@ declare namespace IIIFComponents {
     }
 }
 
-declare namespace IIIFComponents {
+declare namespace IIIFComponents.MetadataComponentOptions {
     class LimitType extends StringValue {
         static LINES: LimitType;
         static CHARS: LimitType;
+        lines(): LimitType;
+        chars(): LimitType;
     }
 }
 
@@ -3200,7 +3202,7 @@ declare namespace IIIFComponents {
         displayOrder: string;
         helper: Manifold.IHelper;
         limit: number;
-        limitType: LimitType;
+        limitType: MetadataComponentOptions.LimitType;
         manifestExclude: string;
         sanitizer: (html: string) => string;
     }
