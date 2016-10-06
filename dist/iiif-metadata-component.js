@@ -100,9 +100,9 @@ var IIIFComponents;
                 displayOrder: "",
                 helper: null,
                 limit: 4,
-                limitType: IIIFComponents.LimitType.LINES.toString(),
+                limitType: IIIFComponents.LimitType.LINES,
                 manifestExclude: "",
-                sanitizer: function (html) { return html; } // see example for how to pass in a sanitizer
+                sanitizer: function (html) { return html; }
             };
         };
         MetadataComponent.prototype.databind = function () {
@@ -203,10 +203,10 @@ var IIIFComponents;
                 $.each(data, function (index, item) {
                     var built = _this._buildItem(item);
                     element.append(built);
-                    if (_this.options.limitType === IIIFComponents.LimitType.LINES.toString()) {
+                    if (_this.options.limitType === IIIFComponents.LimitType.LINES) {
                         built.find('.text').toggleExpandTextByLines(_this.options.limit, _this.options.content.less, _this.options.content.more);
                     }
-                    else if (_this.options.limitType === IIIFComponents.LimitType.CHARS.toString()) {
+                    else if (_this.options.limitType === IIIFComponents.LimitType.CHARS) {
                         built.find('.text').ellipsisHtmlFixed(_this.options.limit, null);
                     }
                 });

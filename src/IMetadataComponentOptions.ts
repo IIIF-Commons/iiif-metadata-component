@@ -15,15 +15,15 @@ namespace IIIFComponents{
     }
     
     export interface IMetadataComponentOptions extends _Components.IBaseComponentOptions {
-        aggregateValues: string;
-        canvasExclude: string;
+        aggregateValues: string;                // csv of metadata items to merge into a single item
+        canvasExclude: string;                  // csv of items to exclude from canvas metadata display
         content: IContent;
         copyToClipboardEnabled: boolean;
-        displayOrder: string;
+        displayOrder: string;                   // csv of items to override display order
         helper: Manifold.IHelper;
         limit: number;
-        limitType: string;
-        manifestExclude: string;
-        sanitizer: (html: string) => string;
+        limitType: LimitType;
+        manifestExclude: string;                // csv of items to exclude from manifest metadata display
+        sanitizer: (html: string) => string;    // see example for how to pass in a sanitizer
     }
 }

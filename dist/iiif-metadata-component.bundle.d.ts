@@ -3200,7 +3200,7 @@ declare namespace IIIFComponents {
         displayOrder: string;
         helper: Manifold.IHelper;
         limit: number;
-        limitType: string;
+        limitType: LimitType;
         manifestExclude: string;
         sanitizer: (html: string) => string;
     }

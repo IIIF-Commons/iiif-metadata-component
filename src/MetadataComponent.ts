@@ -55,8 +55,8 @@ namespace IIIFComponents {
         
         protected _getDefaultOptions(): IMetadataComponentOptions {
             return <IMetadataComponentOptions>{
-                aggregateValues: "",                            // csv of metadata items to merge into a single item
-                canvasExclude: "",                              // csv of items to exclude from canvas metadata display
+                aggregateValues: "",
+                canvasExclude: "",
                 content: <IContent>{
                     attribution: "Attribution",
                     canvasHeader: "About the image",
@@ -71,12 +71,12 @@ namespace IIIFComponents {
                     noData: "No data to display"
                 },
                 copyToClipboardEnabled: false,
-                displayOrder: "",                               // csv of items to override display order
+                displayOrder: "",
                 helper: null,
                 limit: 4,
-                limitType: LimitType.LINES.toString(),
-                manifestExclude: "",                            // csv of items to exclude from manifest metadata display
-                sanitizer: function(html) { return html }       // see example for how to pass in a sanitizer
+                limitType: LimitType.LINES,
+                manifestExclude: "",
+                sanitizer: function(html) { return html }
             }
         }
 
@@ -206,9 +206,9 @@ namespace IIIFComponents {
                 $.each(data, (index: number, item: any) => {
                     var built = this._buildItem(item);
                     element.append(built);
-                    if (this.options.limitType === LimitType.LINES.toString()) {
+                    if (this.options.limitType === LimitType.LINES) {
                         built.find('.text').toggleExpandTextByLines(this.options.limit, this.options.content.less, this.options.content.more);
-                    } else if (this.options.limitType === LimitType.CHARS.toString()) {
+                    } else if (this.options.limitType === LimitType.CHARS) {
                         built.find('.text').ellipsisHtmlFixed(this.options.limit, null);
                     }
                 });
