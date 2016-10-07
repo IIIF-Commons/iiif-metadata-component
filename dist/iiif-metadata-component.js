@@ -138,15 +138,16 @@ var IIIFComponents;
             var _this = this;
             // sort items
             var sorted = [];
+            var unsorted = data.clone();
             $.each(displayOrder, function (index, item) {
-                var match = data.en().where((function (x) { return _this._normalise(x.label) === item; })).first();
+                var match = unsorted.en().where((function (x) { return _this._normalise(x.label) === item; })).first();
                 if (match) {
                     sorted.push(match);
-                    data.remove(match);
+                    unsorted.remove(match);
                 }
             });
             // add remaining items that were not in the displayOrder.
-            $.each(data, function (index, item) {
+            $.each(unsorted, function (index, item) {
                 sorted.push(item);
             });
             return sorted;

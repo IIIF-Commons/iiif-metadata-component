@@ -119,17 +119,18 @@ namespace IIIFComponents {
         private _sort(data: IMetadataItem[], displayOrder: string[]) {
             // sort items
             var sorted: IMetadataItem[] = [];
+            var unsorted: IMetadataItem[] = data.clone();
 
             $.each(displayOrder, (index: number, item: string) => {
-                var match: IMetadataItem = data.en().where((x => this._normalise(x.label) === item)).first();
+                var match: IMetadataItem = unsorted.en().where((x => this._normalise(x.label) === item)).first();
                 if (match){
                     sorted.push(match);
-                    data.remove(match);
+                    unsorted.remove(match);
                 }
             });
 
             // add remaining items that were not in the displayOrder.
-            $.each(data, (index: number, item: IMetadataItem) => {
+            $.each(unsorted, (index: number, item: IMetadataItem) => {
                 sorted.push(item);
             });
 
