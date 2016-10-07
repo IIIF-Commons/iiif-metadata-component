@@ -354,5 +354,6 @@ namespace IIIFComponents.MetadataComponent {
         w.IIIFComponents = IIIFComponents;
     } else {
         w.IIIFComponents.MetadataComponent = IIIFComponents.MetadataComponent;
+        w.IIIFComponents.MetadataComponentOptions = IIIFComponents.MetadataComponentOptions;
     }
 })(window);
