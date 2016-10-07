@@ -211,13 +211,13 @@ var IIIFComponents;
                     element.append(this._buildHeader(header));
                 }
                 $.each(data, function (index, item) {
-                    var built = _this._buildItem(item);
-                    element.append(built);
+                    var $built = _this._buildItem(item);
+                    element.append($built);
                     if (_this.options.limitType === IIIFComponents.MetadataComponentOptions.LimitType.LINES) {
-                        built.find('.text').toggleExpandTextByLines(_this.options.limit, _this.options.content.less, _this.options.content.more);
+                        $built.find('.text').toggleExpandTextByLines(_this.options.limit, _this.options.content.less, _this.options.content.more, function () { });
                     }
                     else if (_this.options.limitType === IIIFComponents.MetadataComponentOptions.LimitType.CHARS) {
-                        built.find('.text').ellipsisHtmlFixed(_this.options.limit, null);
+                        $built.find('.text').ellipsisHtmlFixed(_this.options.limit, null);
                     }
                 });
             }

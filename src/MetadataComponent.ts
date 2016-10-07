@@ -140,7 +140,7 @@ namespace IIIFComponents {
 
             $.each(excludeConfig, (index: number, item: string) => {
                 var match: IMetadataItem = data.en().where((x => this._normalise(x.label) === item)).first();
-                if (match){
+                if (match) {
                     data.remove(match);
                 }
             });
@@ -204,28 +204,28 @@ namespace IIIFComponents {
                 }
 
                 $.each(data, (index: number, item: any) => {
-                    var built = this._buildItem(item);
-                    element.append(built);
+                    var $built: JQuery = this._buildItem(item);
+                    element.append($built);
                     if (this.options.limitType === MetadataComponentOptions.LimitType.LINES) {
-                        built.find('.text').toggleExpandTextByLines(this.options.limit, this.options.content.less, this.options.content.more);
+                        $built.find('.text').toggleExpandTextByLines(this.options.limit, this.options.content.less, this.options.content.more, () => {});
                     } else if (this.options.limitType === MetadataComponentOptions.LimitType.CHARS) {
-                        built.find('.text').ellipsisHtmlFixed(this.options.limit, null);
+                        $built.find('.text').ellipsisHtmlFixed(this.options.limit, null);
                     }
                 });
             }
         }
 
         private _buildHeader(label: string): JQuery {
-            var $header = $('<div class="header"></div>');
+            var $header: JQuery = $('<div class="header"></div>');
             $header.html(this._sanitize(label));
 
             return $header;
         }
 
-        private _buildItem(item: IMetadataItem): any {
-            var $elem = this._$moreInfoItemTemplate.clone();
-            var $header = $elem.find('.header');
-            var $text = $elem.find('.text');
+        private _buildItem(item: IMetadataItem): JQuery {
+            var $elem: JQuery = this._$moreInfoItemTemplate.clone();
+            var $header: JQuery = $elem.find('.header');
+            var $text: JQuery = $elem.find('.text');
 
             item.label = this._sanitize(item.label);
             item.value = this._sanitize(<string>item.value);
