@@ -3167,8 +3167,6 @@ declare namespace IIIFComponents.MetadataComponentOptions {
     class LimitType extends StringValue {
         static LINES: LimitType;
         static CHARS: LimitType;
-        lines(): LimitType;
-        chars(): LimitType;
     }
 }
 

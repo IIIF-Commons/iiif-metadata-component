@@ -31,13 +31,6 @@ var IIIFComponents;
             function LimitType() {
                 _super.apply(this, arguments);
             }
-            // todo: use getters when ES3 target is no longer required.
-            LimitType.prototype.lines = function () {
-                return new LimitType(LimitType.LINES.toString());
-            };
-            LimitType.prototype.chars = function () {
-                return new LimitType(LimitType.CHARS.toString());
-            };
             LimitType.LINES = new LimitType("lines");
             LimitType.CHARS = new LimitType("chars");
             return LimitType;
