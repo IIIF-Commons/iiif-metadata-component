@@ -29,13 +29,14 @@
             // http://wellcomelibrary.org/iiif/b18035978/manifest (Biocrats)
             // https://iiif.riksarkivet.se/arkis!C0000263/manifest (canvas metadata)
             // https://iiif.riksarkivet.se/arkis!F0001185/manifest (merge source reference)
+            // https://edsilv.github.io/test-manifests/all-metadata.json (all metadata)
 
             Manifold.loadManifest({
-                iiifResourceUri: 'https://iiif.riksarkivet.se/arkis!F0001185/manifest',
+                iiifResourceUri: 'https://edsilv.github.io/test-manifests/all-metadata.json',
                 collectionIndex: 0,
                 manifestIndex: 0,
                 sequenceIndex: 0,
-                canvasIndex: 0
+                canvasIndex: 0,
             }).then(function(h){
                 
                 helper = h;
@@ -49,6 +50,10 @@
                     element: "#metadata",
                     helper: h,
                     limitType: IIIFComponents.MetadataComponentOptions.LimitType.LINES,
+                    metadataOptions: {
+                        canvases: [helper.getCanvasByIndex(0), helper.getCanvasByIndex(1)],
+                        range: helper.getRanges()[0]
+                    },
                     sanitizer: function(html) {
                         var elem = document.createElement('div');
                         var $elem = $(elem);

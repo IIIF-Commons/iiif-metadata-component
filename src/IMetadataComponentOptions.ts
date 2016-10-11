@@ -24,6 +24,7 @@ namespace IIIFComponents{
         limit: number;
         limitType: MetadataComponentOptions.LimitType;
         manifestExclude: string;                // csv of items to exclude from manifest metadata display
+        metadataOptions: Manifold.MetadataOptions;
         sanitizer: (html: string) => string;    // see example for how to pass in a sanitizer
     }
 }

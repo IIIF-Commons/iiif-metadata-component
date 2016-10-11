@@ -5,15 +5,14 @@ namespace IIIFComponents {
 
         public options: IMetadataComponentOptions;
 
-        private _$canvasItems: JQuery;
         private _$copyTextTemplate: JQuery;
-        private _$items: JQuery;
-        private _$moreInfoItemTemplate: JQuery;
+        private _$metadataGroups: JQuery;
+        private _$metadataGroupTemplate: JQuery;
+        private _$metadataItemTemplate: JQuery;
         private _$noData: JQuery;
-        private _aggregateValues: string[];
-        private _canvasMetadata: IMetadataItem[];
-        private _canvasExclude: string[];
-        private _manifestMetadata: IMetadataItem[];
+        //private _aggregateValues: string[];
+        //private _canvasExclude: string[];
+        private _metadataGroups: Manifold.MetadataGroup[];
 
         constructor(options: IMetadataComponentOptions) {
             super(options);
@@ -29,7 +28,12 @@ namespace IIIFComponents {
                 console.error("Component failed to initialise");
             }
 
-            this._$moreInfoItemTemplate =   $('<div class="item">\
+            this._$metadataGroupTemplate =   $('<div class="group">\
+                                                   <div class="header"></div>\
+                                                   <div class="items"></div>\
+                                               </div>');
+
+            this._$metadataItemTemplate =   $('<div class="item">\
                                                    <div class="header"></div>\
                                                    <div class="text"></div>\
                                                </div>');
@@ -38,17 +42,17 @@ namespace IIIFComponents {
                                                    <div class="copiedText">' + this.options.content.copiedToClipboard + ' </div>\
                                                </div>');
 
-            this._$items = $('<div class="items"></div>');
-            this._$element.append(this._$items);
+            this._$metadataGroups = $('<div class="groups"></div>');
+            this._$element.append(this._$metadataGroups);
 
-            this._$canvasItems = $('<div class="items"></div>');
-            this._$element.append(this._$canvasItems);
+            //this._$canvasItems = $('<div class="items"></div>');
+            //this._$element.append(this._$canvasItems);
 
             this._$noData = $('<div class="noData">' + this.options.content.noData + '</div>');
             this._$element.append(this._$noData);
 
-            this._aggregateValues = this._readCSV(this.options.aggregateValues);
-            this._canvasExclude = this._readCSV(this.options.canvasExclude);
+            //this._aggregateValues = this._readCSV(this.options.aggregateValues);
+            //this._canvasExclude = this._readCSV(this.options.canvasExclude);
 
             return success;
         }
@@ -76,6 +80,7 @@ namespace IIIFComponents {
                 limit: 4,
                 limitType: MetadataComponentOptions.LimitType.LINES,
                 manifestExclude: "",
+                metadataOptions: null,
                 sanitizer: function(html) { return html }
             }
         }
@@ -86,40 +91,37 @@ namespace IIIFComponents {
             // if (this.extension.config.licenseMap){
             //     data = this.extension.helper.getMetadata(new Manifold.UriLabeller(this.extension.config.licenseMap));
             // } else {
-                this._manifestMetadata = this.options.helper.getMetadata();
+                this._metadataGroups = this.options.helper.getMetadata(this.options.metadataOptions);
             //}
 
-            if (this.options.displayOrder) {
-                this._manifestMetadata = this._sort(<IMetadataItem[]>this._manifestMetadata[0].value, this._readCSV(this.options.displayOrder));
-            }
+            // if (this.options.displayOrder) {
+            //     this._metadataGroups = this._sort(<IMetadataItem[]>this._metadata[0].value, this._readCSV(this.options.displayOrder));
+            // }
             
-            if (this.options.manifestExclude) {
-                this._manifestMetadata = this._exclude(<IMetadataItem[]>this._manifestMetadata[0].value, this._readCSV(this.options.manifestExclude));
-            }
+            // if (this.options.manifestExclude) {
+            //     this._metadata = this._exclude(<IMetadataItem[]>this._metadata[0].value, this._readCSV(this.options.manifestExclude));
+            // }
             
-            this._manifestMetadata = this._flatten(this._manifestMetadata);
+            //this._metadataGroups = this._flatten(this._metadata);
 
-            this._canvasMetadata = this._getCanvasData(this.options.helper.getCurrentCanvas());
+            //this._canvasMetadata = this._getCanvasData(this.options.helper.getCurrentCanvas());
 
-            if (this._manifestMetadata.length === 0 && this._canvasMetadata.length === 0){
+            if (!this._metadataGroups.length){
                 this._$noData.show();
                 return;
             }
 
             this._$noData.hide();
 
-            //var manifestRenderData: JQuery = $.extend(true, [], this._manifestMetadata);
-            //var canvasRenderData: JQuery = $.extend(true, [], this._canvasMetadata);
-        
-            this._aggregate(this._manifestMetadata, this._canvasMetadata);
-            this._renderElement(this._$items, this._manifestMetadata, this.options.content.manifestHeader, this._canvasMetadata.length !== 0);
-            this._renderElement(this._$canvasItems, this._canvasMetadata, this.options.content.canvasHeader, this._manifestMetadata.length !== 0);
+            //this._aggregate(this._metadata, this._canvasMetadata);
+            this._render();
+            //this._render(this._$canvasItems, this._canvasMetadata, this.options.content.canvasHeader, this._metadata.length !== 0);
         }
 
-        private _sort(data: IMetadataItem[], displayOrder: string[]) {
+        private _sort(items: IMetadataItem[], displayOrder: string[]): IMetadataItem[] {
             // sort items
             var sorted: IMetadataItem[] = [];
-            var unsorted: IMetadataItem[] = data.clone();
+            var unsorted: IMetadataItem[] = items.clone();
 
             $.each(displayOrder, (index: number, item: string) => {
                 var match: IMetadataItem = unsorted.en().where((x => this._normalise(x.label) === item)).first();
@@ -137,23 +139,23 @@ namespace IIIFComponents {
             return sorted;
         }
 
-        private _exclude(data: IMetadataItem[], excludeConfig: string[]): IMetadataItem[] {
+        private _exclude(items: IMetadataItem[], excludeConfig: string[]): IMetadataItem[] {
 
             $.each(excludeConfig, (index: number, item: string) => {
-                var match: IMetadataItem = data.en().where((x => this._normalise(x.label) === item)).first();
+                var match: IMetadataItem = items.en().where((x => this._normalise(x.label) === item)).first();
                 if (match) {
-                    data.remove(match);
+                    items.remove(match);
                 }
             });
             
-            return data;
+            return items;
         }
         
-        private _flatten(data: IMetadataItem[]): IMetadataItem[] {
+        private _flatten(items: IMetadataItem[]): IMetadataItem[] {
             // flatten metadata into array.
             var flattened: IMetadataItem[] = [];
 
-            $.each(data, (index: number, item: any) => {
+            $.each(items, (index: number, item: any) => {
                 if (Array.isArray(item.value)){
                     flattened = flattened.concat(<IMetadataItem[]>item.value);
                 } else {
@@ -166,105 +168,106 @@ namespace IIIFComponents {
 
         // merge any duplicate items into canvas metadata
         // todo: needs to be more generic taking a single concatenated array
-        private _aggregate(manifestMetadata: any[], canvasMetadata: any[]) {
+        // private _aggregate(manifestMetadata: any[], canvasMetadata: any[]) {
 
-            if (this._aggregateValues.length) {
+        //     if (this._aggregateValues.length) {
 
-                $.each(canvasMetadata, (index: number, canvasItem: any) => {
+        //         $.each(canvasMetadata, (index: number, canvasItem: any) => {
 
-                    $.each(this._aggregateValues, (index: number, value: string) => {
+        //             $.each(this._aggregateValues, (index: number, value: string) => {
 
-                        value = this._normalise(value);
+        //                 value = this._normalise(value);
 
-                        if (this._normalise(canvasItem.label) === value) {
-                            var manifestItem = manifestMetadata.en().where(x => this._normalise(x.label) === value).first();
+        //                 if (this._normalise(canvasItem.label) === value) {
+        //                     var manifestItem = manifestMetadata.en().where(x => this._normalise(x.label) === value).first();
 
-                            if (manifestItem) {
-                                canvasItem.value = manifestItem.value + canvasItem.value;
-                                manifestMetadata.remove(manifestItem);
-                            }
-                        }  
+        //                     if (manifestItem) {
+        //                         canvasItem.value = manifestItem.value + canvasItem.value;
+        //                         manifestMetadata.remove(manifestItem);
+        //                     }
+        //                 }  
 
-                    });
+        //             });
 
-                });
-            }
-        }
+        //         });
+        //     }
+        // }
 
         private _normalise(value: string): string {
             return value.toLowerCase().replace(/ /g, "");
         }
 
-        private _renderElement(element: JQuery, data: any, header: string, renderHeader: boolean) {
-            element.empty();
+        private _render() {
 
-            if (data.length !== 0) {
+            // loop through metadata groups
+            for (var i = 0; i < this._metadataGroups.length; i++) {
+                var metadataGroup: Manifold.MetadataGroup = this._metadataGroups[i];
 
-                if (renderHeader && header){
-                    element.append(this._buildHeader(header));
+                var $metadataGroup: JQuery = this._buildMetadataGroup(metadataGroup);
+                this._$metadataGroups.append($metadataGroup);
+
+                if (this.options.limitType === MetadataComponentOptions.LimitType.LINES) {
+                    $metadataGroup.find('.text').toggleExpandTextByLines(this.options.limit, this.options.content.less, this.options.content.more, () => {});
+                } else if (this.options.limitType === MetadataComponentOptions.LimitType.CHARS) {
+                    $metadataGroup.find('.text').ellipsisHtmlFixed(this.options.limit, null);
                 }
 
-                $.each(data, (index: number, item: any) => {
-                    var $built: JQuery = this._buildItem(item);
-                    element.append($built);
-                    if (this.options.limitType === MetadataComponentOptions.LimitType.LINES) {
-                        $built.find('.text').toggleExpandTextByLines(this.options.limit, this.options.content.less, this.options.content.more, () => {});
-                    } else if (this.options.limitType === MetadataComponentOptions.LimitType.CHARS) {
-                        $built.find('.text').ellipsisHtmlFixed(this.options.limit, null);
+            }
+        }
+
+        private _buildMetadataGroup(metadataGroup: Manifold.MetadataGroup): JQuery {
+            var $metadataGroup: JQuery = this._$metadataGroupTemplate.clone();
+            //var $header: JQuery = $metadataGroup.find('.header'); todo: add headers
+            var $items: JQuery = $metadataGroup.find('.items');
+
+            for (var i = 0; i < metadataGroup.items.length; i++) {
+
+                var $metadataItem: JQuery = this._$metadataItemTemplate.clone();
+                var $header: JQuery = $metadataItem.find('.header');
+                var $text: JQuery = $metadataItem.find('.text');
+
+                var item: Manifold.IMetadataItem = metadataGroup.items[i];
+
+                item.label = this._sanitize(item.label);
+                item.value = this._sanitize(<string>item.value);
+
+                if (item.isTranslatable) {
+                    switch (item.label.toLowerCase()) {
+                        case "attribution":
+                            item.label = this.options.content.attribution;
+                            break;
+                        case "description":
+                            item.label = this.options.content.description;
+                            break;
+                        case "license":
+                            item.label = this.options.content.license;
+                            break;
+                        case "logo":
+                            item.label = this.options.content.logo;
+                            break;
                     }
-                });
-            }
-        }
-
-        private _buildHeader(label: string): JQuery {
-            var $header: JQuery = $('<div class="header"></div>');
-            $header.html(this._sanitize(label));
-
-            return $header;
-        }
-
-        private _buildItem(item: IMetadataItem): JQuery {
-            var $elem: JQuery = this._$moreInfoItemTemplate.clone();
-            var $header: JQuery = $elem.find('.header');
-            var $text: JQuery = $elem.find('.text');
-
-            item.label = this._sanitize(item.label);
-            item.value = this._sanitize(<string>item.value);
-
-            if (item.isRootLevel) {
-                switch (item.label.toLowerCase()) {
-                    case "attribution":
-                        item.label = this.options.content.attribution;
-                        break;
-                    case "description":
-                        item.label = this.options.content.description;
-                        break;
-                    case "license":
-                        item.label = this.options.content.license;
-                        break;
-                    case "logo":
-                        item.label = this.options.content.logo;
-                        break;
                 }
+
+                // replace \n with <br>
+                item.value = (<string>item.value).replace('\n', '<br>');
+
+                $header.html(item.label);
+                $text.html(<string>item.value);
+                $text.targetBlank();
+
+                item.label = item.label.trim();
+                item.label = item.label.toLowerCase();
+
+                $metadataItem.addClass(item.label.toCssClass());
+
+                if (this.options.copyToClipboardEnabled && Utils.Clipboard.supportsCopy() && $text.text() && $header.text()){
+                    this._addCopyButton($metadataItem, $header);
+                }
+
+                $items.append($metadataItem);
             }
 
-            // replace \n with <br>
-            item.value = (<string>item.value).replace('\n', '<br>');
-
-            $header.html(item.label);
-            $text.html(<string>item.value);
-            $text.targetBlank();
-
-            item.label = item.label.trim();
-            item.label = item.label.toLowerCase();
-
-            $elem.addClass(item.label.toCssClass());
-
-            if (this.options.copyToClipboardEnabled && Utils.Clipboard.supportsCopy() && $text.text() && $header.text()){
-                this._addCopyButton($elem, $header);
-            }
-            
-            return $elem;
+            return $metadataGroup;
         }
         
         private _addCopyButton($elem: JQuery, $header: JQuery): void {
@@ -294,33 +297,22 @@ namespace IIIFComponents {
         }
         
         private _copyValueForLabel(label: string) {
-            var manifestItems: IMetadataItem[] = this._flatten(this._manifestMetadata);
-            var canvasItems: IMetadataItem[] = this._flatten(this._canvasMetadata);
-            var $matchingItems = $(manifestItems.concat(canvasItems))
-                .filter(function (i, md: any) { return md.label && label && md.label.toLowerCase() === label.toLowerCase(); });
+            // var manifestItems: IMetadataItem[] = this._flatten(this._metadataGroups);
+            // var $matchingItems = $(manifestItems.concat(canvasItems))
+            //     .filter(function (i, md: any) { return md.label && label && md.label.toLowerCase() === label.toLowerCase(); });
 
-            var text = $matchingItems.map(function (i, md: any) { return md.value; }).get().join('');
+            // var text = $matchingItems.map(function (i, md: any) { return md.value; }).get().join('');
 
-            if (!text) return;
+            // if (!text) return;
 
-            Utils.Clipboard.copy(text);
+            // Utils.Clipboard.copy(text);
 
-            var $copiedText = $('.items .item .header:contains(' + label + ') .copiedText');
-            $copiedText.show();
+            // var $copiedText = $('.items .item .header:contains(' + label + ') .copiedText');
+            // $copiedText.show();
 
-            setTimeout(function() {
-                $copiedText.hide();
-            }, 2000);
-        }
-
-        private _getCanvasData(canvas: Manifesto.ICanvas): IMetadataItem[] {
-            var data: IMetadataItem[] = this.options.helper.getCanvasMetadata(canvas);
-                
-            if (this._canvasExclude.length !== 0) {
-                this._exclude(<IMetadataItem[]>data[0].value, this._canvasExclude);
-            }
-            
-            return this._flatten(data);
+            // setTimeout(function() {
+            //     $copiedText.hide();
+            // }, 2000);
         }
         
         private _readCSV(config: string): string[] {

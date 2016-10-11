@@ -46,6 +46,7 @@ declare namespace IIIFComponents {
         limit: number;
         limitType: MetadataComponentOptions.LimitType;
         manifestExclude: string;
+        metadataOptions: Manifold.MetadataOptions;
         sanitizer: (html: string) => string;
     }
 }
@@ -54,30 +55,24 @@ import IMetadataItem = Manifold.IMetadataItem;
 declare namespace IIIFComponents {
     class MetadataComponent extends _Components.BaseComponent implements IMetadataComponent {
         options: IMetadataComponentOptions;
-        private _$canvasItems;
         private _$copyTextTemplate;
-        private _$items;
-        private _$moreInfoItemTemplate;
+        private _$metadataGroups;
+        private _$metadataGroupTemplate;
+        private _$metadataItemTemplate;
         private _$noData;
-        private _aggregateValues;
-        private _canvasMetadata;
-        private _canvasExclude;
-        private _manifestMetadata;
+        private _metadataGroups;
         constructor(options: IMetadataComponentOptions);
         protected _init(): boolean;
         protected _getDefaultOptions(): IMetadataComponentOptions;
         databind(): void;
-        private _sort(data, displayOrder);
-        private _exclude(data, excludeConfig);
-        private _flatten(data);
-        private _aggregate(manifestMetadata, canvasMetadata);
+        private _sort(items, displayOrder);
+        private _exclude(items, excludeConfig);
+        private _flatten(items);
         private _normalise(value);
-        private _renderElement(element, data, header, renderHeader);
-        private _buildHeader(label);
-        private _buildItem(item);
+        private _render();
+        private _buildMetadataGroup(metadataGroup);
         private _addCopyButton($elem, $header);
         private _copyValueForLabel(label);
-        private _getCanvasData(canvas);
         private _readCSV(config);
         private _sanitize(html);
         protected _resize(): void;
