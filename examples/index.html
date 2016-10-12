@@ -22,7 +22,7 @@
 
     <script>
 
-        var helper, component, multiSelectState;
+        var helper, component;
         
         $(function() {
             
@@ -32,28 +32,23 @@
             // https://edsilv.github.io/test-manifests/all-metadata.json (all metadata)
 
             Manifold.loadManifest({
-                iiifResourceUri: 'https://edsilv.github.io/test-manifests/all-metadata.json',
-                collectionIndex: 0,
-                manifestIndex: 0,
-                sequenceIndex: 0,
-                canvasIndex: 0,
+                iiifResourceUri: 'https://edsilv.github.io/test-manifests/all-metadata.json'
             }).then(function(h){
                 
                 helper = h;
                 
                 component = new IIIFComponents.MetadataComponent({
-                    //aggregateValues: "källhänvisning, source reference",
-                    //canvasExclude: "Image ID",
-                    //manifestExclude: "Date",
-                    //copyToClipboardEnabled: true,
-                    //displayOrder: "Remark, Date, Image Id, Serie",
+                    canvasDisplayOrder: "attribution, title",
+                    canvases: [helper.getCanvasByIndex(0), helper.getCanvasByIndex(1)],
+                    canvasLabels: "Left page, Right page",
+                    canvasExclude: "attribution",
+                    copyToClipboardEnabled: false,
                     element: "#metadata",
                     helper: h,
                     limitType: IIIFComponents.MetadataComponentOptions.LimitType.LINES,
-                    metadataOptions: {
-                        canvases: [helper.getCanvasByIndex(0), helper.getCanvasByIndex(1)],
-                        range: helper.getRanges()[0]
-                    },
+                    manifestDisplayOrder: "attribution, publication date, license, title",
+                    manifestExclude: "license, attribution",
+                    range: helper.getRanges()[0],
                     sanitizer: function(html) {
                         var elem = document.createElement('div');
                         var $elem = $(elem);

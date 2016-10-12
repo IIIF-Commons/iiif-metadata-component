@@ -722,6 +722,9 @@ var Manifesto;
             _super.apply(this, arguments);
         }
         // todo: use getters when ES3 target is no longer required.
+        IIIFResourceType.prototype.annotation = function () {
+            return new IIIFResourceType(IIIFResourceType.ANNOTATION.toString());
+        };
         IIIFResourceType.prototype.canvas = function () {
             return new IIIFResourceType(IIIFResourceType.CANVAS.toString());
         };
@@ -734,10 +737,15 @@ var Manifesto;
         IIIFResourceType.prototype.range = function () {
             return new IIIFResourceType(IIIFResourceType.RANGE.toString());
         };
+        IIIFResourceType.prototype.sequence = function () {
+            return new IIIFResourceType(IIIFResourceType.SEQUENCE.toString());
+        };
+        IIIFResourceType.ANNOTATION = new IIIFResourceType("oa:annotation");
         IIIFResourceType.CANVAS = new IIIFResourceType("sc:canvas");
         IIIFResourceType.COLLECTION = new IIIFResourceType("sc:collection");
         IIIFResourceType.MANIFEST = new IIIFResourceType("sc:manifest");
         IIIFResourceType.RANGE = new IIIFResourceType("sc:range");
+        IIIFResourceType.SEQUENCE = new IIIFResourceType("sc:sequence");
         return IIIFResourceType;
     }(Manifesto.StringValue));
     Manifesto.IIIFResourceType = IIIFResourceType;
@@ -1150,11 +1158,23 @@ var Manifesto;
         ManifestResource.prototype.getServices = function () {
             return Manifesto.Utils.getServices(this);
         };
+        ManifestResource.prototype.isAnnotation = function () {
+            return this.getIIIFResourceType().toString() === Manifesto.IIIFResourceType.ANNOTATION.toString();
+        };
         ManifestResource.prototype.isCanvas = function () {
             return this.getIIIFResourceType().toString() === Manifesto.IIIFResourceType.CANVAS.toString();
         };
+        ManifestResource.prototype.isCollection = function () {
+            return this.getIIIFResourceType().toString() === Manifesto.IIIFResourceType.COLLECTION.toString();
+        };
+        ManifestResource.prototype.isManifest = function () {
+            return this.getIIIFResourceType().toString() === Manifesto.IIIFResourceType.MANIFEST.toString();
+        };
         ManifestResource.prototype.isRange = function () {
             return this.getIIIFResourceType().toString() === Manifesto.IIIFResourceType.RANGE.toString();
+        };
+        ManifestResource.prototype.isSequence = function () {
+            return this.getIIIFResourceType().toString() === Manifesto.IIIFResourceType.SEQUENCE.toString();
         };
         return ManifestResource;
     }(Manifesto.JSONLDResource));
@@ -13295,7 +13315,7 @@ var Manifold;
         Helper.prototype.getMetadata = function (options) {
             var metadataGroups = [];
             var manifestMetadata = this.manifest.getMetadata();
-            var manifestGroup = new Manifold.MetadataGroup(Manifold.MetadataGroupType.MANIFEST);
+            var manifestGroup = new Manifold.MetadataGroup(this.manifest);
             if (manifestMetadata && manifestMetadata.length) {
                 manifestGroup.addMetadata(manifestMetadata, true);
             }
@@ -13313,28 +13333,26 @@ var Manifold;
             }
             metadataGroups.push(manifestGroup);
             if (options) {
-                this._parseMetadataOptions(options, metadataGroups);
+                return this._parseMetadataOptions(options, metadataGroups);
             }
-            return metadataGroups;
+            else {
+                return metadataGroups;
+            }
         };
         Helper.prototype._parseMetadataOptions = function (options, metadataGroups) {
             // get sequence metadata
             var sequence = this.getCurrentSequence();
             var sequenceMetadata = sequence.getMetadata();
             if (sequenceMetadata && sequenceMetadata.length) {
-                var sequenceGroup = new Manifold.MetadataGroup(Manifold.MetadataGroupType.SEQUENCE);
+                var sequenceGroup = new Manifold.MetadataGroup(sequence);
                 sequenceGroup.addMetadata(sequenceMetadata);
                 metadataGroups.push(sequenceGroup);
             }
             // get range metadata
-            // todo: walk up parents
             if (options.range) {
-                var rangeMetadata = options.range.getMetadata();
-                if (rangeMetadata && rangeMetadata.length) {
-                    var rangeGroup = new Manifold.MetadataGroup(Manifold.MetadataGroupType.RANGE);
-                    rangeGroup.addMetadata(rangeMetadata);
-                    metadataGroups.push(rangeGroup);
-                }
+                var rangeGroups = this._getRangeMetadata([], options.range);
+                rangeGroups = rangeGroups.reverse();
+                metadataGroups = metadataGroups.concat(rangeGroups);
             }
             // get canvas metadata
             if (options.canvases && options.canvases.length) {
@@ -13342,7 +13360,7 @@ var Manifold;
                     var canvas = options.canvases[i];
                     var canvasMetadata = canvas.getMetadata();
                     if (canvasMetadata && canvasMetadata.length) {
-                        var canvasGroup = new Manifold.MetadataGroup(Manifold.MetadataGroupType.CANVAS);
+                        var canvasGroup = new Manifold.MetadataGroup(canvas);
                         canvasGroup.addMetadata(canvas.getMetadata());
                         metadataGroups.push(canvasGroup);
                     }
@@ -13352,7 +13370,7 @@ var Manifold;
                         var image = images[j];
                         var imageMetadata = image.getMetadata();
                         if (imageMetadata && imageMetadata.length) {
-                            var imageGroup = new Manifold.MetadataGroup(Manifold.MetadataGroupType.IMAGE);
+                            var imageGroup = new Manifold.MetadataGroup(image);
                             imageGroup.addMetadata(imageMetadata);
                             metadataGroups.push(imageGroup);
                         }
@@ -13360,6 +13378,20 @@ var Manifold;
                 }
             }
             return metadataGroups;
+        };
+        Helper.prototype._getRangeMetadata = function (metadataGroups, range) {
+            var rangeMetadata = range.getMetadata();
+            if (rangeMetadata && rangeMetadata.length) {
+                var rangeGroup = new Manifold.MetadataGroup(range);
+                rangeGroup.addMetadata(rangeMetadata);
+                metadataGroups.push(rangeGroup);
+            }
+            if (range.parentRange) {
+                return this._getRangeMetadata(metadataGroups, range.parentRange);
+            }
+            else {
+                return metadataGroups;
+            }
         };
         Helper.prototype.getMultiSelectState = function () {
             if (!this._multiSelectState) {
@@ -13767,10 +13799,10 @@ var Manifold;
 var Manifold;
 (function (Manifold) {
     var MetadataGroup = (function () {
-        function MetadataGroup(type, name) {
+        function MetadataGroup(resource, label) {
             this.items = [];
-            this.type = type;
-            this.name = name;
+            this.resource = resource;
+            this.label = label;
         }
         MetadataGroup.prototype.addItem = function (item) {
             this.items.push(item);
@@ -13785,28 +13817,6 @@ var Manifold;
         return MetadataGroup;
     }());
     Manifold.MetadataGroup = MetadataGroup;
-})(Manifold || (Manifold = {}));
-
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-var Manifold;
-(function (Manifold) {
-    var MetadataGroupType = (function (_super) {
-        __extends(MetadataGroupType, _super);
-        function MetadataGroupType() {
-            _super.apply(this, arguments);
-        }
-        MetadataGroupType.MANIFEST = new MetadataGroupType("manifest");
-        MetadataGroupType.SEQUENCE = new MetadataGroupType("sequence");
-        MetadataGroupType.RANGE = new MetadataGroupType("range");
-        MetadataGroupType.CANVAS = new MetadataGroupType("canvas");
-        MetadataGroupType.IMAGE = new MetadataGroupType("image");
-        return MetadataGroupType;
-    }(Manifold.StringValue));
-    Manifold.MetadataGroupType = MetadataGroupType;
 })(Manifold || (Manifold = {}));
 
 var Manifold;
@@ -17144,4 +17154,4 @@ var Utils;
     Utils.Urls = Urls;
 })(Utils || (Utils = {}));
 
-!function(f){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=f();else if("function"==typeof define&&define.amd)define([],f);else{var g;g="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof self?self:this,g.iiifMetadataComponent=f()}}(function(){return function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a="function"==typeof require&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}for(var i="function"==typeof require&&require,o=0;o<r.length;o++)s(r[o]);return s}({1:[function(require,module,exports){var IIIFComponents;!function(IIIFComponents){var StringValue=function(){function StringValue(value){this.value="",value&&(this.value=value.toLowerCase())}return StringValue.prototype.toString=function(){return this.value},StringValue}();IIIFComponents.StringValue=StringValue}(IIIFComponents||(IIIFComponents={}));var IIIFComponents,__extends=this&&this.__extends||function(d,b){function __(){this.constructor=d}for(var p in b)b.hasOwnProperty(p)&&(d[p]=b[p]);d.prototype=null===b?Object.create(b):(__.prototype=b.prototype,new __)};!function(IIIFComponents){var MetadataComponentOptions;!function(MetadataComponentOptions){var LimitType=function(_super){function LimitType(){_super.apply(this,arguments)}return __extends(LimitType,_super),LimitType.LINES=new LimitType("lines"),LimitType.CHARS=new LimitType("chars"),LimitType}(IIIFComponents.StringValue);MetadataComponentOptions.LimitType=LimitType}(MetadataComponentOptions=IIIFComponents.MetadataComponentOptions||(IIIFComponents.MetadataComponentOptions={}))}(IIIFComponents||(IIIFComponents={}));var IIIFComponents,__extends=this&&this.__extends||function(d,b){function __(){this.constructor=d}for(var p in b)b.hasOwnProperty(p)&&(d[p]=b[p]);d.prototype=null===b?Object.create(b):(__.prototype=b.prototype,new __)};!function(IIIFComponents){var MetadataComponent=function(_super){function MetadataComponent(options){_super.call(this,options),this._init(),this._resize()}return __extends(MetadataComponent,_super),MetadataComponent.prototype._init=function(){var success=_super.prototype._init.call(this);return success||console.error("Component failed to initialise"),this._$metadataGroupTemplate=$('<div class="group">                                                   <div class="header"></div>                                                   <div class="items"></div>                                               </div>'),this._$metadataItemTemplate=$('<div class="item">                                                   <div class="header"></div>                                                   <div class="text"></div>                                               </div>'),this._$copyTextTemplate=$('<div class="copyText" alt="'+this.options.content.copyToClipboard+'" title="'+this.options.content.copyToClipboard+'">                                                   <div class="copiedText">'+this.options.content.copiedToClipboard+" </div>                                               </div>"),this._$metadataGroups=$('<div class="groups"></div>'),this._$element.append(this._$metadataGroups),this._$noData=$('<div class="noData">'+this.options.content.noData+"</div>"),this._$element.append(this._$noData),success},MetadataComponent.prototype._getDefaultOptions=function(){return{aggregateValues:"",canvasExclude:"",content:{attribution:"Attribution",canvasHeader:"About the image",copiedToClipboard:"Copied to clipboard",copyToClipboard:"Copy to clipboard",description:"Description",less:"less",license:"License",logo:"Logo",manifestHeader:"About the item",more:"more",noData:"No data to display"},copyToClipboardEnabled:!1,displayOrder:"",helper:null,limit:4,limitType:IIIFComponents.MetadataComponentOptions.LimitType.LINES,manifestExclude:"",metadataOptions:null,sanitizer:function(html){return html}}},MetadataComponent.prototype.databind=function(){return this._metadataGroups=this.options.helper.getMetadata(this.options.metadataOptions),this._metadataGroups.length?(this._$noData.hide(),void this._render()):void this._$noData.show()},MetadataComponent.prototype._sort=function(items,displayOrder){var _this=this,sorted=[],unsorted=items.clone();return $.each(displayOrder,function(index,item){var match=unsorted.en().where(function(x){return _this._normalise(x.label)===item}).first();match&&(sorted.push(match),unsorted.remove(match))}),$.each(unsorted,function(index,item){sorted.push(item)}),sorted},MetadataComponent.prototype._exclude=function(items,excludeConfig){var _this=this;return $.each(excludeConfig,function(index,item){var match=items.en().where(function(x){return _this._normalise(x.label)===item}).first();match&&items.remove(match)}),items},MetadataComponent.prototype._flatten=function(items){var flattened=[];return $.each(items,function(index,item){Array.isArray(item.value)?flattened=flattened.concat(item.value):flattened.push(item)}),flattened},MetadataComponent.prototype._normalise=function(value){return value.toLowerCase().replace(/ /g,"")},MetadataComponent.prototype._render=function(){for(var i=0;i<this._metadataGroups.length;i++){var metadataGroup=this._metadataGroups[i],$metadataGroup=this._buildMetadataGroup(metadataGroup);this._$metadataGroups.append($metadataGroup),this.options.limitType===IIIFComponents.MetadataComponentOptions.LimitType.LINES?$metadataGroup.find(".text").toggleExpandTextByLines(this.options.limit,this.options.content.less,this.options.content.more,function(){}):this.options.limitType===IIIFComponents.MetadataComponentOptions.LimitType.CHARS&&$metadataGroup.find(".text").ellipsisHtmlFixed(this.options.limit,null)}},MetadataComponent.prototype._buildMetadataGroup=function(metadataGroup){for(var $metadataGroup=this._$metadataGroupTemplate.clone(),$items=$metadataGroup.find(".items"),i=0;i<metadataGroup.items.length;i++){var $metadataItem=this._$metadataItemTemplate.clone(),$header=$metadataItem.find(".header"),$text=$metadataItem.find(".text"),item=metadataGroup.items[i];if(item.label=this._sanitize(item.label),item.value=this._sanitize(item.value),item.isTranslatable)switch(item.label.toLowerCase()){case"attribution":item.label=this.options.content.attribution;break;case"description":item.label=this.options.content.description;break;case"license":item.label=this.options.content.license;break;case"logo":item.label=this.options.content.logo}item.value=item.value.replace("\n","<br>"),$header.html(item.label),$text.html(item.value),$text.targetBlank(),item.label=item.label.trim(),item.label=item.label.toLowerCase(),$metadataItem.addClass(item.label.toCssClass()),this.options.copyToClipboardEnabled&&Utils.Clipboard.supportsCopy()&&$text.text()&&$header.text()&&this._addCopyButton($metadataItem,$header),$items.append($metadataItem)}return $metadataGroup},MetadataComponent.prototype._addCopyButton=function($elem,$header){var _this=this,$copyBtn=this._$copyTextTemplate.clone(),$copiedText=$copyBtn.children();$header.append($copyBtn),Utils.Device.isTouch()?$copyBtn.show():($elem.on("mouseenter",function(){$copyBtn.show()}),$elem.on("mouseleave",function(){$copyBtn.hide()}),$copyBtn.on("mouseleave",function(){$copiedText.hide()})),$copyBtn.on("click",function(e){var imgElement=e.target,headerText=imgElement.previousSibling.textContent||imgElement.previousSibling.nodeValue;_this._copyValueForLabel(headerText)})},MetadataComponent.prototype._copyValueForLabel=function(label){},MetadataComponent.prototype._readCSV=function(config){return config?config.toLowerCase().replace(/ /g,"").split(","):[]},MetadataComponent.prototype._sanitize=function(html){return this.options.sanitizer(html)},MetadataComponent.prototype._resize=function(){},MetadataComponent}(_Components.BaseComponent);IIIFComponents.MetadataComponent=MetadataComponent}(IIIFComponents||(IIIFComponents={}));var IIIFComponents;!function(IIIFComponents){var MetadataComponent;!function(MetadataComponent){var Events=function(){function Events(){}return Events}();MetadataComponent.Events=Events}(MetadataComponent=IIIFComponents.MetadataComponent||(IIIFComponents.MetadataComponent={}))}(IIIFComponents||(IIIFComponents={})),function(w){w.IIIFComponents?(w.IIIFComponents.MetadataComponent=IIIFComponents.MetadataComponent,w.IIIFComponents.MetadataComponentOptions=IIIFComponents.MetadataComponentOptions):w.IIIFComponents=IIIFComponents}(window)},{}]},{},[1])(1)});
+!function(f){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=f();else if("function"==typeof define&&define.amd)define([],f);else{var g;g="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof self?self:this,g.iiifMetadataComponent=f()}}(function(){return function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a="function"==typeof require&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}for(var i="function"==typeof require&&require,o=0;o<r.length;o++)s(r[o]);return s}({1:[function(require,module,exports){var IIIFComponents;!function(IIIFComponents){var StringValue=function(){function StringValue(value){this.value="",value&&(this.value=value.toLowerCase())}return StringValue.prototype.toString=function(){return this.value},StringValue}();IIIFComponents.StringValue=StringValue}(IIIFComponents||(IIIFComponents={}));var IIIFComponents,__extends=this&&this.__extends||function(d,b){function __(){this.constructor=d}for(var p in b)b.hasOwnProperty(p)&&(d[p]=b[p]);d.prototype=null===b?Object.create(b):(__.prototype=b.prototype,new __)};!function(IIIFComponents){var MetadataComponentOptions;!function(MetadataComponentOptions){var LimitType=function(_super){function LimitType(){_super.apply(this,arguments)}return __extends(LimitType,_super),LimitType.LINES=new LimitType("lines"),LimitType.CHARS=new LimitType("chars"),LimitType}(IIIFComponents.StringValue);MetadataComponentOptions.LimitType=LimitType}(MetadataComponentOptions=IIIFComponents.MetadataComponentOptions||(IIIFComponents.MetadataComponentOptions={}))}(IIIFComponents||(IIIFComponents={}));var IIIFComponents,__extends=this&&this.__extends||function(d,b){function __(){this.constructor=d}for(var p in b)b.hasOwnProperty(p)&&(d[p]=b[p]);d.prototype=null===b?Object.create(b):(__.prototype=b.prototype,new __)};!function(IIIFComponents){var MetadataComponent=function(_super){function MetadataComponent(options){_super.call(this,options),this._init(),this._resize()}return __extends(MetadataComponent,_super),MetadataComponent.prototype._init=function(){var success=_super.prototype._init.call(this);return success||console.error("Component failed to initialise"),this._$metadataGroupTemplate=$('<div class="group">                                                   <div class="header"></div>                                                   <div class="items"></div>                                               </div>'),this._$metadataItemTemplate=$('<div class="item">                                                   <div class="header"></div>                                                   <div class="text"></div>                                               </div>'),this._$copyTextTemplate=$('<div class="copyText" alt="'+this.options.content.copyToClipboard+'" title="'+this.options.content.copyToClipboard+'">                                                   <div class="copiedText">'+this.options.content.copiedToClipboard+" </div>                                               </div>"),this._$metadataGroups=$('<div class="groups"></div>'),this._$element.append(this._$metadataGroups),this._$noData=$('<div class="noData">'+this.options.content.noData+"</div>"),this._$element.append(this._$noData),success},MetadataComponent.prototype._getDefaultOptions=function(){return{aggregateValues:"",canvases:null,canvasDisplayOrder:"",canvasExclude:"",canvasLabels:"",content:{attribution:"Attribution",canvasHeader:"About the canvas",copiedToClipboard:"Copied to clipboard",copyToClipboard:"Copy to clipboard",description:"Description",imageHeader:"About the image",less:"less",license:"License",logo:"Logo",manifestHeader:"About the item",more:"more",noData:"No data to display",rangeHeader:"About the range",sequenceHeader:"About the sequence"},copyToClipboardEnabled:!1,helper:null,licenseFormatter:null,limit:4,limitType:IIIFComponents.MetadataComponentOptions.LimitType.LINES,manifestDisplayOrder:"",manifestExclude:"",range:null,sanitizer:function(html){return html}}},MetadataComponent.prototype._getManifestGroup=function(){return this._metadataGroups.en().where(function(x){return x.resource.isManifest()}).first()},MetadataComponent.prototype._getCanvasGroups=function(){return this._metadataGroups.en().where(function(x){return x.resource.isCanvas()}).toArray()},MetadataComponent.prototype.databind=function(){var _this=this,options={canvases:this.options.canvases,licenseFormatter:this.options.licenseFormatter,range:this.options.range};if(this._metadataGroups=this.options.helper.getMetadata(options),this.options.manifestDisplayOrder){var manifestGroup=this._getManifestGroup();manifestGroup.items=this._sort(manifestGroup.items,this._readCSV(this.options.manifestDisplayOrder))}if(this.options.canvasDisplayOrder){var canvasGroups=this._getCanvasGroups();$.each(canvasGroups,function(index,canvasGroup){canvasGroup.items=_this._sort(canvasGroup.items,_this._readCSV(_this.options.canvasDisplayOrder))})}if(this.options.canvasLabels&&this._label(this._getCanvasGroups(),this._readCSV(this.options.canvasLabels,!1)),this.options.manifestExclude){var manifestGroup=this._getManifestGroup();manifestGroup.items=this._exclude(manifestGroup.items,this._readCSV(this.options.manifestExclude))}if(this.options.canvasExclude){var canvasGroups=this._getCanvasGroups();$.each(canvasGroups,function(index,canvasGroup){canvasGroup.items=_this._exclude(canvasGroup.items,_this._readCSV(_this.options.canvasExclude))})}return this._metadataGroups.length?(this._$noData.hide(),void this._render()):void this._$noData.show()},MetadataComponent.prototype._sort=function(items,displayOrder){var _this=this,sorted=[],unsorted=items.clone();return $.each(displayOrder,function(index,item){var match=unsorted.en().where(function(x){return _this._normalise(x.label)===item}).first();match&&(sorted.push(match),unsorted.remove(match))}),$.each(unsorted,function(index,item){sorted.push(item)}),sorted},MetadataComponent.prototype._label=function(groups,labels){$.each(groups,function(index,group){group.label=labels[index]})},MetadataComponent.prototype._exclude=function(items,excludeConfig){var _this=this;return $.each(excludeConfig,function(index,item){var match=items.en().where(function(x){return _this._normalise(x.label)===item}).first();match&&items.remove(match)}),items},MetadataComponent.prototype._normalise=function(value){return value.toLowerCase().replace(/ /g,"")},MetadataComponent.prototype._render=function(){var _this=this;$.each(this._metadataGroups,function(index,metadataGroup){var $metadataGroup=_this._buildMetadataGroup(metadataGroup);_this._$metadataGroups.append($metadataGroup),_this.options.limitType===IIIFComponents.MetadataComponentOptions.LimitType.LINES?$metadataGroup.find(".text").toggleExpandTextByLines(_this.options.limit,_this.options.content.less,_this.options.content.more,function(){}):_this.options.limitType===IIIFComponents.MetadataComponentOptions.LimitType.CHARS&&$metadataGroup.find(".text").ellipsisHtmlFixed(_this.options.limit,null)})},MetadataComponent.prototype._buildMetadataGroup=function(metadataGroup){var $metadataGroup=this._$metadataGroupTemplate.clone(),$header=$metadataGroup.find(">.header");if(metadataGroup.resource.isManifest()&&this.options.content.manifestHeader)$header.html(this._sanitize(this.options.content.manifestHeader));else if(metadataGroup.resource.isSequence()&&this.options.content.sequenceHeader)$header.html(this._sanitize(this.options.content.sequenceHeader));else if(metadataGroup.resource.isRange()&&this.options.content.rangeHeader)$header.html(this._sanitize(this.options.content.rangeHeader));else if(metadataGroup.resource.isCanvas()&&(metadataGroup.label||this.options.content.canvasHeader)){var header=metadataGroup.label||this.options.content.canvasHeader;$header.html(this._sanitize(header))}else metadataGroup.resource.isAnnotation()&&this.options.content.imageHeader&&$header.html(this._sanitize(this.options.content.imageHeader));$header.text()||$header.hide();for(var $items=$metadataGroup.find(".items"),i=0;i<metadataGroup.items.length;i++){var $metadataItem=this._$metadataItemTemplate.clone(),$header=$metadataItem.find(".header"),$text=$metadataItem.find(".text"),item=metadataGroup.items[i];if(item.label=this._sanitize(item.label),item.value=this._sanitize(item.value),item.isTranslatable)switch(item.label.toLowerCase()){case"attribution":item.label=this.options.content.attribution;break;case"description":item.label=this.options.content.description;break;case"license":item.label=this.options.content.license;break;case"logo":item.label=this.options.content.logo}item.value=item.value.replace("\n","<br>"),$header.html(item.label),$text.html(item.value),$text.targetBlank(),item.label=item.label.trim(),item.label=item.label.toLowerCase(),$metadataItem.addClass(item.label.toCssClass()),this.options.copyToClipboardEnabled&&Utils.Clipboard.supportsCopy()&&$text.text()&&$header.text()&&this._addCopyButton($metadataItem,$header),$items.append($metadataItem)}return $metadataGroup},MetadataComponent.prototype._addCopyButton=function($elem,$header){var _this=this,$copyBtn=this._$copyTextTemplate.clone(),$copiedText=$copyBtn.children();$header.append($copyBtn),Utils.Device.isTouch()?$copyBtn.show():($elem.on("mouseenter",function(){$copyBtn.show()}),$elem.on("mouseleave",function(){$copyBtn.hide()}),$copyBtn.on("mouseleave",function(){$copiedText.hide()})),$copyBtn.on("click",function(e){var imgElement=e.target,headerText=imgElement.previousSibling.textContent||imgElement.previousSibling.nodeValue;_this._copyValueForLabel(headerText)})},MetadataComponent.prototype._copyValueForLabel=function(label){},MetadataComponent.prototype._readCSV=function(config,normalise){void 0===normalise&&(normalise=!0);var csv=[];if(config&&(csv=config.split(","),normalise))for(var i=0;i<csv.length;i++)csv[i]=this._normalise(csv[i]);return csv},MetadataComponent.prototype._sanitize=function(html){return this.options.sanitizer(html)},MetadataComponent.prototype._resize=function(){},MetadataComponent}(_Components.BaseComponent);IIIFComponents.MetadataComponent=MetadataComponent}(IIIFComponents||(IIIFComponents={}));var IIIFComponents;!function(IIIFComponents){var MetadataComponent;!function(MetadataComponent){var Events=function(){function Events(){}return Events}();MetadataComponent.Events=Events}(MetadataComponent=IIIFComponents.MetadataComponent||(IIIFComponents.MetadataComponent={}))}(IIIFComponents||(IIIFComponents={})),function(w){w.IIIFComponents?(w.IIIFComponents.MetadataComponent=IIIFComponents.MetadataComponent,w.IIIFComponents.MetadataComponentOptions=IIIFComponents.MetadataComponentOptions):w.IIIFComponents=IIIFComponents}(window)},{}]},{},[1])(1)});

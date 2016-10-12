@@ -6,25 +6,32 @@ namespace IIIFComponents{
         copiedToClipboard: string;
         copyToClipboard: string;
         description: string;
+        imageHeader: string;
         less: string;
         license: string;
         logo: string;
         manifestHeader: string;
         more: string;
         noData: string;
+        rangeHeader: string;
+        sequenceHeader: string;
     }
     
     export interface IMetadataComponentOptions extends _Components.IBaseComponentOptions {
-        aggregateValues: string;                // csv of metadata items to merge into a single item
-        canvasExclude: string;                  // csv of items to exclude from canvas metadata display
+        //aggregateValues: string;                        // csv of metadata items to merge into a single item
+        canvasDisplayOrder: string;                     // csv of items to override display order
+        canvases: Manifesto.ICanvas[];                  // which canvases to include
+        canvasExclude: string;                          // csv of items to exclude from canvas metadata display
+        canvasLabels: string;                           // csv of labels to use for canvas groups
         content: IContent;
         copyToClipboardEnabled: boolean;
-        displayOrder: string;                   // csv of items to override display order
         helper: Manifold.IHelper;
+        licenseFormatter: Manifold.UriLabeller;
         limit: number;
         limitType: MetadataComponentOptions.LimitType;
-        manifestExclude: string;                // csv of items to exclude from manifest metadata display
-        metadataOptions: Manifold.MetadataOptions;
-        sanitizer: (html: string) => string;    // see example for how to pass in a sanitizer
+        manifestDisplayOrder: string;                   // csv of items to override display order
+        manifestExclude: string;                        // csv of items to exclude from manifest metadata display
+        range: Manifesto.IRange;                        // which range to include
+        sanitizer: (html: string) => string;            // see example for how to pass in a sanitizer
     }
 }

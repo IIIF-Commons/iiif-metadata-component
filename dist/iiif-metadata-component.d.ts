@@ -29,24 +29,30 @@ declare namespace IIIFComponents {
         copiedToClipboard: string;
         copyToClipboard: string;
         description: string;
+        imageHeader: string;
         less: string;
         license: string;
         logo: string;
         manifestHeader: string;
         more: string;
         noData: string;
+        rangeHeader: string;
+        sequenceHeader: string;
     }
     interface IMetadataComponentOptions extends _Components.IBaseComponentOptions {
-        aggregateValues: string;
+        canvasDisplayOrder: string;
+        canvases: Manifesto.ICanvas[];
         canvasExclude: string;
+        canvasLabels: string;
         content: IContent;
         copyToClipboardEnabled: boolean;
-        displayOrder: string;
         helper: Manifold.IHelper;
+        licenseFormatter: Manifold.UriLabeller;
         limit: number;
         limitType: MetadataComponentOptions.LimitType;
+        manifestDisplayOrder: string;
         manifestExclude: string;
-        metadataOptions: Manifold.MetadataOptions;
+        range: Manifesto.IRange;
         sanitizer: (html: string) => string;
     }
 }
@@ -64,16 +70,18 @@ declare namespace IIIFComponents {
         constructor(options: IMetadataComponentOptions);
         protected _init(): boolean;
         protected _getDefaultOptions(): IMetadataComponentOptions;
+        private _getManifestGroup();
+        private _getCanvasGroups();
         databind(): void;
         private _sort(items, displayOrder);
+        private _label(groups, labels);
         private _exclude(items, excludeConfig);
-        private _flatten(items);
         private _normalise(value);
         private _render();
         private _buildMetadataGroup(metadataGroup);
         private _addCopyButton($elem, $header);
         private _copyValueForLabel(label);
-        private _readCSV(config);
+        private _readCSV(config, normalise?);
         private _sanitize(html);
         protected _resize(): void;
     }

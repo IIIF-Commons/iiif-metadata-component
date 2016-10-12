@@ -66,7 +66,7 @@ interface JQuery {
     verticalMargins(): number;
     verticalPadding(): number;
 }
-// manifesto.js v0.2.3 https://github.com/viewdir/manifesto
+// manifesto.js v0.2.4 https://github.com/viewdir/manifesto
 declare module exjs {
     var version: string;
 }
@@ -548,14 +548,18 @@ declare module Manifesto {
 
 declare module Manifesto {
     class IIIFResourceType extends StringValue {
+        static ANNOTATION: IIIFResourceType;
         static CANVAS: IIIFResourceType;
         static COLLECTION: IIIFResourceType;
         static MANIFEST: IIIFResourceType;
         static RANGE: IIIFResourceType;
+        static SEQUENCE: IIIFResourceType;
+        annotation(): IIIFResourceType;
         canvas(): IIIFResourceType;
         collection(): IIIFResourceType;
         manifest(): IIIFResourceType;
         range(): IIIFResourceType;
+        sequence(): IIIFResourceType;
     }
 }
 
@@ -716,8 +720,12 @@ declare module Manifesto {
         getRenderings(): IRendering[];
         getService(profile: ServiceProfile | string): IService;
         getServices(): IService[];
+        isAnnotation(): boolean;
         isCanvas(): boolean;
+        isCollection(): boolean;
+        isManifest(): boolean;
         isRange(): boolean;
+        isSequence(): boolean;
     }
 }
 
@@ -1207,8 +1215,11 @@ declare module Manifesto {
         getRenderings(): IRendering[];
         getService(profile: ServiceProfile | string): IService;
         getServices(): IService[];
+        isAnnotation(): boolean;
         isCanvas(): boolean;
+        isManifest(): boolean;
         isRange(): boolean;
+        isSequence(): boolean;
     }
 }
 
@@ -1390,6 +1401,7 @@ declare namespace Manifold {
         getManifestType(): Manifesto.ManifestType;
         getMetadata(options?: MetadataOptions): MetadataGroup[];
         private _parseMetadataOptions(options, metadataGroups);
+        private _getRangeMetadata(metadataGroups, range);
         getMultiSelectState(): Manifold.MultiSelectState;
         getRanges(): IRange[];
         getRangeByPath(path: string): any;
@@ -1584,22 +1596,12 @@ declare namespace Manifold {
 
 declare namespace Manifold {
     class MetadataGroup {
-        type: MetadataGroupType;
-        name: string;
+        resource: Manifesto.IManifestResource;
+        label: string;
         items: IMetadataItem[];
-        constructor(type: MetadataGroupType, name?: string);
+        constructor(resource: Manifesto.IManifestResource, label?: string);
         addItem(item: IMetadataItem): void;
         addMetadata(metadata: any[], isTranslatable?: boolean): void;
-    }
-}
-
-declare namespace Manifold {
-    class MetadataGroupType extends StringValue {
-        static MANIFEST: MetadataGroupType;
-        static SEQUENCE: MetadataGroupType;
-        static RANGE: MetadataGroupType;
-        static CANVAS: MetadataGroupType;
-        static IMAGE: MetadataGroupType;
     }
 }
 
@@ -3222,24 +3224,30 @@ declare namespace IIIFComponents {
         copiedToClipboard: string;
         copyToClipboard: string;
         description: string;
+        imageHeader: string;
         less: string;
         license: string;
         logo: string;
         manifestHeader: string;
         more: string;
         noData: string;
+        rangeHeader: string;
+        sequenceHeader: string;
     }
     interface IMetadataComponentOptions extends _Components.IBaseComponentOptions {
-        aggregateValues: string;
+        canvasDisplayOrder: string;
+        canvases: Manifesto.ICanvas[];
         canvasExclude: string;
+        canvasLabels: string;
         content: IContent;
         copyToClipboardEnabled: boolean;
-        displayOrder: string;
         helper: Manifold.IHelper;
+        licenseFormatter: Manifold.UriLabeller;
         limit: number;
         limitType: MetadataComponentOptions.LimitType;
+        manifestDisplayOrder: string;
         manifestExclude: string;
-        metadataOptions: Manifold.MetadataOptions;
+        range: Manifesto.IRange;
         sanitizer: (html: string) => string;
     }
 }
@@ -3257,16 +3265,18 @@ declare namespace IIIFComponents {
         constructor(options: IMetadataComponentOptions);
         protected _init(): boolean;
         protected _getDefaultOptions(): IMetadataComponentOptions;
+        private _getManifestGroup();
+        private _getCanvasGroups();
         databind(): void;
         private _sort(items, displayOrder);
+        private _label(groups, labels);
         private _exclude(items, excludeConfig);
-        private _flatten(items);
         private _normalise(value);
         private _render();
         private _buildMetadataGroup(metadataGroup);
         private _addCopyButton($elem, $header);
         private _copyValueForLabel(label);
-        private _readCSV(config);
+        private _readCSV(config, normalise?);
         private _sanitize(html);
         protected _resize(): void;
     }

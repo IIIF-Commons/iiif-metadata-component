@@ -1,4 +1,4 @@
-// manifesto.js v0.2.3 https://github.com/viewdir/manifesto
+// manifesto.js v0.2.4 https://github.com/viewdir/manifesto
 declare module exjs {
     var version: string;
 }
@@ -480,14 +480,18 @@ declare module Manifesto {
 
 declare module Manifesto {
     class IIIFResourceType extends StringValue {
+        static ANNOTATION: IIIFResourceType;
         static CANVAS: IIIFResourceType;
         static COLLECTION: IIIFResourceType;
         static MANIFEST: IIIFResourceType;
         static RANGE: IIIFResourceType;
+        static SEQUENCE: IIIFResourceType;
+        annotation(): IIIFResourceType;
         canvas(): IIIFResourceType;
         collection(): IIIFResourceType;
         manifest(): IIIFResourceType;
         range(): IIIFResourceType;
+        sequence(): IIIFResourceType;
     }
 }
 
@@ -648,8 +652,12 @@ declare module Manifesto {
         getRenderings(): IRendering[];
         getService(profile: ServiceProfile | string): IService;
         getServices(): IService[];
+        isAnnotation(): boolean;
         isCanvas(): boolean;
+        isCollection(): boolean;
+        isManifest(): boolean;
         isRange(): boolean;
+        isSequence(): boolean;
     }
 }
 
@@ -1139,8 +1147,11 @@ declare module Manifesto {
         getRenderings(): IRendering[];
         getService(profile: ServiceProfile | string): IService;
         getServices(): IService[];
+        isAnnotation(): boolean;
         isCanvas(): boolean;
+        isManifest(): boolean;
         isRange(): boolean;
+        isSequence(): boolean;
     }
 }
 
@@ -1322,6 +1333,7 @@ declare namespace Manifold {
         getManifestType(): Manifesto.ManifestType;
         getMetadata(options?: MetadataOptions): MetadataGroup[];
         private _parseMetadataOptions(options, metadataGroups);
+        private _getRangeMetadata(metadataGroups, range);
         getMultiSelectState(): Manifold.MultiSelectState;
         getRanges(): IRange[];
         getRangeByPath(path: string): any;
@@ -1516,22 +1528,12 @@ declare namespace Manifold {
 
 declare namespace Manifold {
     class MetadataGroup {
-        type: MetadataGroupType;
-        name: string;
+        resource: Manifesto.IManifestResource;
+        label: string;
         items: IMetadataItem[];
-        constructor(type: MetadataGroupType, name?: string);
+        constructor(resource: Manifesto.IManifestResource, label?: string);
         addItem(item: IMetadataItem): void;
         addMetadata(metadata: any[], isTranslatable?: boolean): void;
-    }
-}
-
-declare namespace Manifold {
-    class MetadataGroupType extends StringValue {
-        static MANIFEST: MetadataGroupType;
-        static SEQUENCE: MetadataGroupType;
-        static RANGE: MetadataGroupType;
-        static CANVAS: MetadataGroupType;
-        static IMAGE: MetadataGroupType;
     }
 }
 

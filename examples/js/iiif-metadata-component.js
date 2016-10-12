@@ -78,68 +78,90 @@ var IIIFComponents;
                                                </div>');
             this._$metadataGroups = $('<div class="groups"></div>');
             this._$element.append(this._$metadataGroups);
-            //this._$canvasItems = $('<div class="items"></div>');
-            //this._$element.append(this._$canvasItems);
             this._$noData = $('<div class="noData">' + this.options.content.noData + '</div>');
             this._$element.append(this._$noData);
-            //this._aggregateValues = this._readCSV(this.options.aggregateValues);
-            //this._canvasExclude = this._readCSV(this.options.canvasExclude);
             return success;
         };
         MetadataComponent.prototype._getDefaultOptions = function () {
             return {
                 aggregateValues: "",
+                canvases: null,
+                canvasDisplayOrder: "",
                 canvasExclude: "",
+                canvasLabels: "",
                 content: {
                     attribution: "Attribution",
-                    canvasHeader: "About the image",
+                    canvasHeader: "About the canvas",
                     copiedToClipboard: "Copied to clipboard",
                     copyToClipboard: "Copy to clipboard",
                     description: "Description",
+                    imageHeader: "About the image",
                     less: "less",
                     license: "License",
                     logo: "Logo",
                     manifestHeader: "About the item",
                     more: "more",
-                    noData: "No data to display"
+                    noData: "No data to display",
+                    rangeHeader: "About the range",
+                    sequenceHeader: "About the sequence"
                 },
                 copyToClipboardEnabled: false,
-                displayOrder: "",
                 helper: null,
+                licenseFormatter: null,
                 limit: 4,
                 limitType: IIIFComponents.MetadataComponentOptions.LimitType.LINES,
+                manifestDisplayOrder: "",
                 manifestExclude: "",
-                metadataOptions: null,
+                range: null,
                 sanitizer: function (html) { return html; }
             };
         };
+        MetadataComponent.prototype._getManifestGroup = function () {
+            return this._metadataGroups.en().where(function (x) { return x.resource.isManifest(); }).first();
+        };
+        MetadataComponent.prototype._getCanvasGroups = function () {
+            return this._metadataGroups.en().where(function (x) { return x.resource.isCanvas(); }).toArray();
+        };
         MetadataComponent.prototype.databind = function () {
-            // todo
-            // if (this.extension.config.licenseMap){
-            //     data = this.extension.helper.getMetadata(new Manifold.UriLabeller(this.extension.config.licenseMap));
-            // } else {
-            this._metadataGroups = this.options.helper.getMetadata(this.options.metadataOptions);
-            //}
-            // if (this.options.displayOrder) {
-            //     this._metadataGroups = this._sort(<IMetadataItem[]>this._metadata[0].value, this._readCSV(this.options.displayOrder));
-            // }
-            // if (this.options.manifestExclude) {
-            //     this._metadata = this._exclude(<IMetadataItem[]>this._metadata[0].value, this._readCSV(this.options.manifestExclude));
-            // }
-            //this._metadataGroups = this._flatten(this._metadata);
-            //this._canvasMetadata = this._getCanvasData(this.options.helper.getCurrentCanvas());
+            var _this = this;
+            var options = {
+                canvases: this.options.canvases,
+                licenseFormatter: this.options.licenseFormatter,
+                range: this.options.range
+            };
+            this._metadataGroups = this.options.helper.getMetadata(options);
+            if (this.options.manifestDisplayOrder) {
+                var manifestGroup = this._getManifestGroup();
+                manifestGroup.items = this._sort(manifestGroup.items, this._readCSV(this.options.manifestDisplayOrder));
+            }
+            if (this.options.canvasDisplayOrder) {
+                var canvasGroups = this._getCanvasGroups();
+                $.each(canvasGroups, function (index, canvasGroup) {
+                    canvasGroup.items = _this._sort(canvasGroup.items, _this._readCSV(_this.options.canvasDisplayOrder));
+                });
+            }
+            if (this.options.canvasLabels) {
+                this._label(this._getCanvasGroups(), this._readCSV(this.options.canvasLabels, false));
+            }
+            if (this.options.manifestExclude) {
+                var manifestGroup = this._getManifestGroup();
+                manifestGroup.items = this._exclude(manifestGroup.items, this._readCSV(this.options.manifestExclude));
+            }
+            if (this.options.canvasExclude) {
+                var canvasGroups = this._getCanvasGroups();
+                $.each(canvasGroups, function (index, canvasGroup) {
+                    canvasGroup.items = _this._exclude(canvasGroup.items, _this._readCSV(_this.options.canvasExclude));
+                });
+            }
             if (!this._metadataGroups.length) {
                 this._$noData.show();
                 return;
             }
             this._$noData.hide();
-            //this._aggregate(this._metadata, this._canvasMetadata);
             this._render();
-            //this._render(this._$canvasItems, this._canvasMetadata, this.options.content.canvasHeader, this._metadata.length !== 0);
         };
         MetadataComponent.prototype._sort = function (items, displayOrder) {
             var _this = this;
-            // sort items
             var sorted = [];
             var unsorted = items.clone();
             $.each(displayOrder, function (index, item) {
@@ -155,6 +177,11 @@ var IIIFComponents;
             });
             return sorted;
         };
+        MetadataComponent.prototype._label = function (groups, labels) {
+            $.each(groups, function (index, group) {
+                group.label = labels[index];
+            });
+        };
         MetadataComponent.prototype._exclude = function (items, excludeConfig) {
             var _this = this;
             $.each(excludeConfig, function (index, item) {
@@ -165,19 +192,18 @@ var IIIFComponents;
             });
             return items;
         };
-        MetadataComponent.prototype._flatten = function (items) {
-            // flatten metadata into array.
-            var flattened = [];
-            $.each(items, function (index, item) {
-                if (Array.isArray(item.value)) {
-                    flattened = flattened.concat(item.value);
-                }
-                else {
-                    flattened.push(item);
-                }
-            });
-            return flattened;
-        };
+        // private _flatten(items: IMetadataItem[]): IMetadataItem[] {
+        //     // flatten metadata into array.
+        //     var flattened: IMetadataItem[] = [];
+        //     $.each(items, (index: number, item: any) => {
+        //         if (Array.isArray(item.value)){
+        //             flattened = flattened.concat(<IMetadataItem[]>item.value);
+        //         } else {
+        //             flattened.push(item);
+        //         }
+        //     });
+        //     return flattened;
+        // }
         // merge any duplicate items into canvas metadata
         // todo: needs to be more generic taking a single concatenated array
         // private _aggregate(manifestMetadata: any[], canvasMetadata: any[]) {
@@ -200,22 +226,41 @@ var IIIFComponents;
             return value.toLowerCase().replace(/ /g, "");
         };
         MetadataComponent.prototype._render = function () {
-            // loop through metadata groups
-            for (var i = 0; i < this._metadataGroups.length; i++) {
-                var metadataGroup = this._metadataGroups[i];
-                var $metadataGroup = this._buildMetadataGroup(metadataGroup);
-                this._$metadataGroups.append($metadataGroup);
-                if (this.options.limitType === IIIFComponents.MetadataComponentOptions.LimitType.LINES) {
-                    $metadataGroup.find('.text').toggleExpandTextByLines(this.options.limit, this.options.content.less, this.options.content.more, function () { });
+            var _this = this;
+            $.each(this._metadataGroups, function (index, metadataGroup) {
+                var $metadataGroup = _this._buildMetadataGroup(metadataGroup);
+                _this._$metadataGroups.append($metadataGroup);
+                if (_this.options.limitType === IIIFComponents.MetadataComponentOptions.LimitType.LINES) {
+                    $metadataGroup.find('.text').toggleExpandTextByLines(_this.options.limit, _this.options.content.less, _this.options.content.more, function () { });
                 }
-                else if (this.options.limitType === IIIFComponents.MetadataComponentOptions.LimitType.CHARS) {
-                    $metadataGroup.find('.text').ellipsisHtmlFixed(this.options.limit, null);
+                else if (_this.options.limitType === IIIFComponents.MetadataComponentOptions.LimitType.CHARS) {
+                    $metadataGroup.find('.text').ellipsisHtmlFixed(_this.options.limit, null);
                 }
-            }
+            });
         };
         MetadataComponent.prototype._buildMetadataGroup = function (metadataGroup) {
             var $metadataGroup = this._$metadataGroupTemplate.clone();
-            //var $header: JQuery = $metadataGroup.find('.header'); todo: add headers
+            var $header = $metadataGroup.find('>.header');
+            // add group header
+            if (metadataGroup.resource.isManifest() && this.options.content.manifestHeader) {
+                $header.html(this._sanitize(this.options.content.manifestHeader));
+            }
+            else if (metadataGroup.resource.isSequence() && this.options.content.sequenceHeader) {
+                $header.html(this._sanitize(this.options.content.sequenceHeader));
+            }
+            else if (metadataGroup.resource.isRange() && this.options.content.rangeHeader) {
+                $header.html(this._sanitize(this.options.content.rangeHeader));
+            }
+            else if (metadataGroup.resource.isCanvas() && (metadataGroup.label || this.options.content.canvasHeader)) {
+                var header = metadataGroup.label || this.options.content.canvasHeader;
+                $header.html(this._sanitize(header));
+            }
+            else if (metadataGroup.resource.isAnnotation() && this.options.content.imageHeader) {
+                $header.html(this._sanitize(this.options.content.imageHeader));
+            }
+            if (!$header.text()) {
+                $header.hide();
+            }
             var $items = $metadataGroup.find('.items');
             for (var i = 0; i < metadataGroup.items.length; i++) {
                 var $metadataItem = this._$metadataItemTemplate.clone();
@@ -293,14 +338,18 @@ var IIIFComponents;
             //     $copiedText.hide();
             // }, 2000);
         };
-        MetadataComponent.prototype._readCSV = function (config) {
+        MetadataComponent.prototype._readCSV = function (config, normalise) {
+            if (normalise === void 0) { normalise = true; }
+            var csv = [];
             if (config) {
-                return config
-                    .toLowerCase()
-                    .replace(/ /g, "")
-                    .split(',');
+                csv = config.split(',');
+                if (normalise) {
+                    for (var i = 0; i < csv.length; i++) {
+                        csv[i] = this._normalise(csv[i]);
+                    }
+                }
             }
-            return [];
+            return csv;
         };
         MetadataComponent.prototype._sanitize = function (html) {
             return this.options.sanitizer(html);
