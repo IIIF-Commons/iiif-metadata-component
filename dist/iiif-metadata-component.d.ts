@@ -57,7 +57,8 @@ declare namespace IIIFComponents {
     }
 }
 
-import IMetadataItem = Manifold.IMetadataItem;
+import MetadataItem = Manifold.MetadataItem;
+import MetadataGroup = Manifold.MetadataGroup;
 declare namespace IIIFComponents {
     class MetadataComponent extends _Components.BaseComponent implements IMetadataComponent {
         options: IMetadataComponentOptions;

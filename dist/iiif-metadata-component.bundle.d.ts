@@ -715,7 +715,7 @@ declare module Manifesto {
         constructor(jsonld?: any, options?: IManifestoOptions);
         getIIIFResourceType(): IIIFResourceType;
         getLabel(): string;
-        getMetadata(): any;
+        getMetadata(): MetadataItem[];
         getRendering(format: RenderingFormat | string): IRendering;
         getRenderings(): IRendering[];
         getService(profile: ServiceProfile | string): IService;
@@ -991,6 +991,7 @@ declare var manifesto: IManifesto;
 declare module Manifesto {
     class Utils {
         static getImageQuality(profile: Manifesto.ServiceProfile): string;
+        static getInexactLocale(locale: string): string;
         static getLocalisedValue(resource: any, locale: string): string;
         static generateTreeNodeIds(treeNode: ITreeNode, index?: number): void;
         static loadResource(uri: string): Promise<string>;
@@ -1006,6 +1007,18 @@ declare module Manifesto {
         static getResourceById(parentResource: IJSONLDResource, id: string): IJSONLDResource;
         static getAllArrays(obj: any): exjs.IEnumerable<any>;
         static getServices(resource: any): IService[];
+    }
+}
+
+declare module Manifesto {
+    class MetadataItem {
+        label: TranslationCollection;
+        value: TranslationCollection;
+        defaultLocale: string;
+        resource: any;
+        constructor(resource: any, defaultLocale: string);
+        getLabel(): string;
+        getValue(): string;
     }
 }
 
@@ -1039,6 +1052,7 @@ declare module Manifesto {
 /// <reference path="TreeNode.d.ts" />
 /// <reference path="TreeNodeType.d.ts" />
 /// <reference path="Utils.d.ts" />
+/// <reference path="MetadataItem.d.ts" />
 /// <reference path="Manifesto.d.ts" />
 
 declare module Manifesto {
@@ -1184,12 +1198,14 @@ interface IManifesto {
     loadExternalResources: (resources: Manifesto.IExternalResource[], tokenStorageStrategy: string, clickThrough: (resource: Manifesto.IExternalResource) => Promise<void>, restricted: (resource: Manifesto.IExternalResource) => Promise<void>, login: (resource: Manifesto.IExternalResource) => Promise<void>, getAccessToken: (resource: Manifesto.IExternalResource, rejectOnError: boolean) => Promise<Manifesto.IAccessToken>, storeAccessToken: (resource: Manifesto.IExternalResource, token: Manifesto.IAccessToken, tokenStorageStrategy: string) => Promise<void>, getStoredAccessToken: (resource: Manifesto.IExternalResource, tokenStorageStrategy: string) => Promise<Manifesto.IAccessToken>, handleResourceResponse: (resource: Manifesto.IExternalResource) => Promise<any>, options?: Manifesto.IManifestoOptions) => Promise<Manifesto.IExternalResource[]>;
     loadManifest: (uri: string) => Promise<string>;
     ManifestType: Manifesto.ManifestType;
+    MetadataItem: any;
     RenderingFormat: Manifesto.RenderingFormat;
     ResourceFormat: Manifesto.ResourceFormat;
     ResourceType: Manifesto.ResourceType;
     ServiceProfile: Manifesto.ServiceProfile;
     StatusCodes: Manifesto.IStatusCodes;
     TreeNodeType: Manifesto.TreeNodeType;
+    Utils: any;
     ViewingDirection: Manifesto.ViewingDirection;
     ViewingHint: Manifesto.ViewingHint;
 }
@@ -1308,6 +1324,20 @@ declare module Manifesto {
     }
 }
 
+declare module Manifesto {
+    class Translation {
+        value: string;
+        locale: string;
+        constructor(value: string, locale: string);
+    }
+}
+
+declare module Manifesto {
+    class TranslationCollection extends Array<Translation> {
+        static parse(translation: any, defaultLocale: string): TranslationCollection;
+    }
+}
+
 interface Window {
     manifestCallback: any;
 }
@@ -1368,12 +1398,13 @@ declare namespace Manifold {
 declare namespace Manifold {
     class Helper implements IHelper {
         private _multiSelectState;
+        canvasIndex: number;
+        collectionIndex: number;
         iiifResource: Manifesto.IIIIFResource;
         iiifResourceUri: string;
         manifest: Manifesto.IManifest;
-        collectionIndex: number;
         manifestIndex: number;
-        canvasIndex: number;
+        options: IManifoldOptions;
         sequenceIndex: number;
         constructor(options: IManifoldOptions);
         getAutoCompleteService(): Manifesto.IService;
@@ -1559,10 +1590,10 @@ declare namespace Manifold {
 }
 
 declare namespace Manifold {
-    interface IMetadataItem {
-        label: string;
-        value: string;
-        isTranslatable: boolean;
+    interface IMetadataItem extends Manifesto.MetadataItem {
+        isRootLevel: boolean;
+        setLabel(value: string): void;
+        setValue(value: string): void;
     }
 }
 
@@ -1598,19 +1629,20 @@ declare namespace Manifold {
     class MetadataGroup {
         resource: Manifesto.IManifestResource;
         label: string;
-        items: IMetadataItem[];
+        items: Manifold.MetadataItem[];
         constructor(resource: Manifesto.IManifestResource, label?: string);
-        addItem(item: IMetadataItem): void;
-        addMetadata(metadata: any[], isTranslatable?: boolean): void;
+        addItem(item: Manifold.MetadataItem): void;
+        addMetadata(metadata: Manifesto.MetadataItem[], isRootLevel?: boolean): void;
+        private _convertItem(item);
     }
 }
 
 declare namespace Manifold {
-    class MetadataItem implements IMetadataItem {
-        label: string;
-        value: string;
-        isTranslatable: boolean;
-        constructor(label: string, value: string, isTranslatable?: boolean);
+    class MetadataItem extends Manifesto.MetadataItem {
+        isRootLevel: boolean;
+        constructor(item: any, defaultLocale: string);
+        setLabel(value: string): void;
+        setValue(value: string): void;
     }
 }
 
@@ -1644,6 +1676,14 @@ declare namespace Manifold {
         selectAllRanges(selected: boolean): void;
         selectRanges(ranges: IRange[], selected: boolean): void;
         setEnabled(enabled: boolean): void;
+    }
+}
+
+declare namespace Manifold {
+    class Translation {
+        value: string;
+        locale: string;
+        constructor(value: string, locale: string);
     }
 }
 
@@ -3252,7 +3292,8 @@ declare namespace IIIFComponents {
     }
 }
 
-import IMetadataItem = Manifold.IMetadataItem;
+import MetadataItem = Manifold.MetadataItem;
+import MetadataGroup = Manifold.MetadataGroup;
 declare namespace IIIFComponents {
     class MetadataComponent extends _Components.BaseComponent implements IMetadataComponent {
         options: IMetadataComponentOptions;

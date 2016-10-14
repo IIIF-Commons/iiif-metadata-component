@@ -1,4 +1,5 @@
-import IMetadataItem = Manifold.IMetadataItem;
+import MetadataItem = Manifold.MetadataItem;
+import MetadataGroup = Manifold.MetadataGroup;
 
 namespace IIIFComponents {
     export class MetadataComponent extends _Components.BaseComponent implements IMetadataComponent{
@@ -12,7 +13,7 @@ namespace IIIFComponents {
         private _$noData: JQuery;
         //private _aggregateValues: string[];
         //private _canvasExclude: string[];
-        private _metadataGroups: Manifold.MetadataGroup[];
+        private _metadataGroups: MetadataGroup[];
 
         constructor(options: IMetadataComponentOptions) {
             super(options);
@@ -86,11 +87,11 @@ namespace IIIFComponents {
             }
         }
 
-        private _getManifestGroup(): Manifold.MetadataGroup {
+        private _getManifestGroup(): MetadataGroup {
             return this._metadataGroups.en().where(x => x.resource.isManifest()).first();
         }
 
-        private _getCanvasGroups(): Manifold.MetadataGroup[] {
+        private _getCanvasGroups(): MetadataGroup[] {
             return this._metadataGroups.en().where(x => x.resource.isCanvas()).toArray();
         }
 
@@ -105,14 +106,14 @@ namespace IIIFComponents {
             this._metadataGroups = this.options.helper.getMetadata(options);
 
             if (this.options.manifestDisplayOrder) {
-                var manifestGroup: Manifold.MetadataGroup = this._getManifestGroup();
+                var manifestGroup: MetadataGroup = this._getManifestGroup();
                 manifestGroup.items = this._sort(manifestGroup.items, this._readCSV(this.options.manifestDisplayOrder));
             }
 
             if (this.options.canvasDisplayOrder) {
-                var canvasGroups: Manifold.MetadataGroup[] = this._getCanvasGroups();
+                var canvasGroups: MetadataGroup[] = this._getCanvasGroups();
 
-                $.each(canvasGroups, (index: number, canvasGroup: Manifold.MetadataGroup) => {
+                $.each(canvasGroups, (index: number, canvasGroup: MetadataGroup) => {
                     canvasGroup.items = this._sort(canvasGroup.items, this._readCSV(this.options.canvasDisplayOrder));
                 });
             }
@@ -122,14 +123,14 @@ namespace IIIFComponents {
             }
             
             if (this.options.manifestExclude) {
-                var manifestGroup: Manifold.MetadataGroup = this._getManifestGroup();
+                var manifestGroup: MetadataGroup = this._getManifestGroup();
                 manifestGroup.items = this._exclude(manifestGroup.items, this._readCSV(this.options.manifestExclude));
             }
 
             if (this.options.canvasExclude) {
-                var canvasGroups: Manifold.MetadataGroup[] = this._getCanvasGroups();
+                var canvasGroups: MetadataGroup[] = this._getCanvasGroups();
 
-                $.each(canvasGroups, (index: number, canvasGroup: Manifold.MetadataGroup) => {
+                $.each(canvasGroups, (index: number, canvasGroup: MetadataGroup) => {
                     canvasGroup.items = this._exclude(canvasGroup.items, this._readCSV(this.options.canvasExclude));
                 });
             }
@@ -144,13 +145,13 @@ namespace IIIFComponents {
             this._render();
         }
 
-        private _sort(items: IMetadataItem[], displayOrder: string[]): IMetadataItem[] {
+        private _sort(items: MetadataItem[], displayOrder: string[]): MetadataItem[] {
 
-            var sorted: IMetadataItem[] = [];
-            var unsorted: IMetadataItem[] = items.clone();
+            var sorted: MetadataItem[] = [];
+            var unsorted: MetadataItem[] = items.clone();
 
             $.each(displayOrder, (index: number, item: string) => {
-                var match: IMetadataItem = unsorted.en().where((x => this._normalise(x.label) === item)).first();
+                var match: MetadataItem = unsorted.en().where((x => this._normalise(x.getLabel()) === item)).first();
                 if (match){
                     sorted.push(match);
                     unsorted.remove(match);
@@ -158,24 +159,24 @@ namespace IIIFComponents {
             });
 
             // add remaining items that were not in the displayOrder.
-            $.each(unsorted, (index: number, item: IMetadataItem) => {
+            $.each(unsorted, (index: number, item: MetadataItem) => {
                 sorted.push(item);
             });
 
             return sorted;
         }
 
-        private _label(groups: Manifold.MetadataGroup[], labels: string[]): void {
+        private _label(groups: MetadataGroup[], labels: string[]): void {
 
-            $.each(groups, (index: number, group: Manifold.MetadataGroup) => {
+            $.each(groups, (index: number, group: MetadataGroup) => {
                 group.label = labels[index];
             });
         }
 
-        private _exclude(items: IMetadataItem[], excludeConfig: string[]): IMetadataItem[] {
+        private _exclude(items: MetadataItem[], excludeConfig: string[]): MetadataItem[] {
 
             $.each(excludeConfig, (index: number, item: string) => {
-                var match: IMetadataItem = items.en().where((x => this._normalise(x.label) === item)).first();
+                var match: MetadataItem = items.en().where((x => this._normalise(x.getLabel()) === item)).first();
                 if (match) {
                     items.remove(match);
                 }
@@ -184,13 +185,13 @@ namespace IIIFComponents {
             return items;
         }
         
-        // private _flatten(items: IMetadataItem[]): IMetadataItem[] {
+        // private _flatten(items: MetadataItem[]): MetadataItem[] {
         //     // flatten metadata into array.
-        //     var flattened: IMetadataItem[] = [];
+        //     var flattened: MetadataItem[] = [];
 
         //     $.each(items, (index: number, item: any) => {
         //         if (Array.isArray(item.value)){
-        //             flattened = flattened.concat(<IMetadataItem[]>item.value);
+        //             flattened = flattened.concat(<MetadataItem[]>item.value);
         //         } else {
         //             flattened.push(item);
         //         }
@@ -232,7 +233,7 @@ namespace IIIFComponents {
 
         private _render() {
 
-            $.each(this._metadataGroups, (index: number, metadataGroup: Manifold.MetadataGroup) => {
+            $.each(this._metadataGroups, (index: number, metadataGroup: MetadataGroup) => {
                 var $metadataGroup: JQuery = this._buildMetadataGroup(metadataGroup);
                 this._$metadataGroups.append($metadataGroup);
 
@@ -244,7 +245,7 @@ namespace IIIFComponents {
             });
         }
 
-        private _buildMetadataGroup(metadataGroup: Manifold.MetadataGroup): JQuery {
+        private _buildMetadataGroup(metadataGroup: MetadataGroup): JQuery {
             var $metadataGroup: JQuery = this._$metadataGroupTemplate.clone();
             var $header: JQuery = $metadataGroup.find('>.header');
 
@@ -274,39 +275,39 @@ namespace IIIFComponents {
                 var $header: JQuery = $metadataItem.find('.header');
                 var $text: JQuery = $metadataItem.find('.text');
 
-                var item: Manifold.IMetadataItem = metadataGroup.items[i];
+                var item: Manifold.MetadataItem = metadataGroup.items[i];
 
-                item.label = this._sanitize(item.label);
-                item.value = this._sanitize(<string>item.value);
+                item.setLabel(this._sanitize(item.getLabel()));
+                item.setValue(this._sanitize(<string>item.getValue()));
 
-                if (item.isTranslatable) {
-                    switch (item.label.toLowerCase()) {
+                if (item.isRootLevel) {
+                    switch (item.getLabel().toLowerCase()) {
                         case "attribution":
-                            item.label = this.options.content.attribution;
+                            item.setLabel(this.options.content.attribution);
                             break;
                         case "description":
-                            item.label = this.options.content.description;
+                            item.setLabel(this.options.content.description);
                             break;
                         case "license":
-                            item.label = this.options.content.license;
+                            item.setLabel(this.options.content.license);
                             break;
                         case "logo":
-                            item.label = this.options.content.logo;
+                            item.setLabel(this.options.content.logo);
                             break;
                     }
                 }
 
                 // replace \n with <br>
-                item.value = (<string>item.value).replace('\n', '<br>');
+                item.setValue(item.getValue().replace('\n', '<br>'));
 
-                $header.html(item.label);
-                $text.html(<string>item.value);
+                $header.html(item.getLabel());
+                $text.html(<string>item.getValue());
                 $text.targetBlank();
 
-                item.label = item.label.trim();
-                item.label = item.label.toLowerCase();
+                item.setLabel(item.getLabel().trim());
+                item.setLabel(item.getLabel().toLowerCase());
 
-                $metadataItem.addClass(item.label.toCssClass());
+                $metadataItem.addClass(item.getLabel().toCssClass());
 
                 if (this.options.copyToClipboardEnabled && Utils.Clipboard.supportsCopy() && $text.text() && $header.text()){
                     this._addCopyButton($metadataItem, $header);
@@ -345,7 +346,7 @@ namespace IIIFComponents {
         }
         
         private _copyValueForLabel(label: string) {
-            // var manifestItems: IMetadataItem[] = this._flatten(this._metadataGroups);
+            // var manifestItems: MetadataItem[] = this._flatten(this._metadataGroups);
             // var $matchingItems = $(manifestItems.concat(canvasItems))
             //     .filter(function (i, md: any) { return md.label && label && md.label.toLowerCase() === label.toLowerCase(); });
 
