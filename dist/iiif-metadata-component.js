@@ -72,9 +72,10 @@ var IIIFComponents;
                                                    <div class="items"></div>\
                                                </div>');
             this._$metadataItemTemplate = $('<div class="item">\
-                                                   <div class="header"></div>\
-                                                   <div class="text"></div>\
+                                                   <div class="label"></div>\
+                                                   <div class="values"></div>\
                                                </div>');
+            this._$metadataItemValueTemplate = $('<div class="value"></div>');
             this._$copyTextTemplate = $('<div class="copyText" alt="' + this.options.content.copyToClipboard + '" title="' + this.options.content.copyToClipboard + '">\
                                                    <div class="copiedText">' + this.options.content.copiedToClipboard + ' </div>\
                                                </div>');
@@ -115,7 +116,8 @@ var IIIFComponents;
                 manifestDisplayOrder: "",
                 manifestExclude: "",
                 range: null,
-                sanitizer: function (html) { return html; }
+                sanitizer: function (html) { return html; },
+                showAllLanguages: false
             };
         };
         MetadataComponent.prototype._getManifestGroup = function () {
@@ -233,10 +235,10 @@ var IIIFComponents;
                 var $metadataGroup = _this._buildMetadataGroup(metadataGroup);
                 _this._$metadataGroups.append($metadataGroup);
                 if (_this.options.limitType === IIIFComponents.MetadataComponentOptions.LimitType.LINES) {
-                    $metadataGroup.find('.text').toggleExpandTextByLines(_this.options.limit, _this.options.content.less, _this.options.content.more, function () { });
+                    $metadataGroup.find('.value').toggleExpandTextByLines(_this.options.limit, _this.options.content.less, _this.options.content.more, function () { });
                 }
                 else if (_this.options.limitType === IIIFComponents.MetadataComponentOptions.LimitType.CHARS) {
-                    $metadataGroup.find('.text').ellipsisHtmlFixed(_this.options.limit, null);
+                    $metadataGroup.find('.value').ellipsisHtmlFixed(_this.options.limit, null);
                 }
             });
         };
@@ -265,42 +267,61 @@ var IIIFComponents;
             }
             var $items = $metadataGroup.find('.items');
             for (var i = 0; i < metadataGroup.items.length; i++) {
-                var $metadataItem = this._$metadataItemTemplate.clone();
-                var $header = $metadataItem.find('.header');
-                var $text = $metadataItem.find('.text');
                 var item = metadataGroup.items[i];
-                item.setLabel(this._sanitize(item.getLabel()));
-                item.setValue(this._sanitize(item.getValue()));
-                if (item.isRootLevel) {
-                    switch (item.getLabel().toLowerCase()) {
-                        case "attribution":
-                            item.setLabel(this.options.content.attribution);
-                            break;
-                        case "description":
-                            item.setLabel(this.options.content.description);
-                            break;
-                        case "license":
-                            item.setLabel(this.options.content.license);
-                            break;
-                        case "logo":
-                            item.setLabel(this.options.content.logo);
-                            break;
-                    }
-                }
-                // replace \n with <br>
-                item.setValue(item.getValue().replace('\n', '<br>'));
-                $header.html(item.getLabel());
-                $text.html(item.getValue());
-                $text.targetBlank();
-                item.setLabel(item.getLabel().trim());
-                item.setLabel(item.getLabel().toLowerCase());
-                $metadataItem.addClass(item.getLabel().toCssClass());
-                if (this.options.copyToClipboardEnabled && Utils.Clipboard.supportsCopy() && $text.text() && $header.text()) {
-                    this._addCopyButton($metadataItem, $header);
-                }
+                var $metadataItem = this._buildMetadataItem(item);
                 $items.append($metadataItem);
             }
             return $metadataGroup;
+        };
+        MetadataComponent.prototype._buildMetadataItem = function (item) {
+            var $metadataItem = this._$metadataItemTemplate.clone();
+            var $label = $metadataItem.find('.label');
+            var $values = $metadataItem.find('.values');
+            var label = item.getLabel();
+            if (item.isRootLevel) {
+                switch (label.toLowerCase()) {
+                    case "attribution":
+                        label = this.options.content.attribution;
+                        break;
+                    case "description":
+                        label = this.options.content.description;
+                        break;
+                    case "license":
+                        label = this.options.content.license;
+                        break;
+                    case "logo":
+                        label = this.options.content.logo;
+                        break;
+                }
+            }
+            label = this._sanitize(label);
+            $label.html(label);
+            $metadataItem.addClass(label.toCssClass());
+            var value;
+            var $value;
+            if (this.options.showAllLanguages && item.value.length > 1) {
+                for (var i = 0; i < item.value.length; i++) {
+                    var translation = item.value[i];
+                    $value = this._buildMetadataItemValue(translation.value);
+                    $values.append($value);
+                }
+            }
+            else {
+                $value = this._buildMetadataItemValue(item.getValue());
+                $values.append($value);
+            }
+            // if (this.options.copyToClipboardEnabled && Utils.Clipboard.supportsCopy() && $value.text() && $label.text()){
+            //     this._addCopyButton($metadataItem, $label);
+            // }
+            return $metadataItem;
+        };
+        MetadataComponent.prototype._buildMetadataItemValue = function (value) {
+            value = this._sanitize(value);
+            value = value.replace('\n', '<br>'); // replace \n with <br>
+            var $value = this._$metadataItemValueTemplate.clone();
+            $value.html(value);
+            $value.targetBlank();
+            return $value;
         };
         MetadataComponent.prototype._addCopyButton = function ($elem, $header) {
             var _this = this;

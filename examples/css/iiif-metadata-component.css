@@ -17,12 +17,12 @@ body {
   padding: 0;
   margin: 0 0 20px 0;
 }
-.iiif-metadata-component .items .item .header {
+.iiif-metadata-component .items .item .label {
   color: #9a9a9a;
   border-bottom: 1px solid #343434;
   margin: 15px 10px 0 0;
 }
-.iiif-metadata-component .items .item .header .copyText {
+.iiif-metadata-component .items .item .label .copyText {
   position: relative;
   float: right;
   display: none;
@@ -31,7 +31,7 @@ body {
   cursor: pointer;
   background-image: url('../img/copy.png');
 }
-.iiif-metadata-component .items .item .header .copiedText {
+.iiif-metadata-component .items .item .label .copiedText {
   display: none;
   position: absolute;
   top: 18px;
@@ -45,24 +45,24 @@ body {
   border-radius: 2px;
   color: #000;
 }
-.iiif-metadata-component .items .item .text {
+.iiif-metadata-component .items .item .value {
   color: #000;
   margin: 5px 10px 0 0;
   overflow: hidden;
   word-wrap: break-word;
   line-height: 1.6em;
 }
-.iiif-metadata-component .items .item .text a.toggle {
+.iiif-metadata-component .items .item .value a.toggle {
   color: #14a4c3;
   font-weight: normal;
 }
-.iiif-metadata-component .items .item .text a.toggle:hover {
+.iiif-metadata-component .items .item .value a.toggle:hover {
   color: #22c5e8;
 }
-.iiif-metadata-component .items .item .text a.toggle.more,
-.iiif-metadata-component .items .item .text a.toggle.less {
+.iiif-metadata-component .items .item .value a.toggle.more,
+.iiif-metadata-component .items .item .value a.toggle.less {
   font-variant: small-caps;
 }
-.iiif-metadata-component .items .item .text img {
+.iiif-metadata-component .items .item .value img {
   max-width: 100px;
 }

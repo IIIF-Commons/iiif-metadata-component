@@ -33,5 +33,6 @@ namespace IIIFComponents{
         manifestExclude: string;                        // csv of items to exclude from manifest metadata display
         range: Manifesto.IRange;                        // which range to include
         sanitizer: (html: string) => string;            // see example for how to pass in a sanitizer
+        showAllLanguages: boolean;
     }
 }

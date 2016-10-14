@@ -10,6 +10,7 @@ namespace IIIFComponents {
         private _$metadataGroups: JQuery;
         private _$metadataGroupTemplate: JQuery;
         private _$metadataItemTemplate: JQuery;
+        private _$metadataItemValueTemplate: JQuery;
         private _$noData: JQuery;
         //private _aggregateValues: string[];
         //private _canvasExclude: string[];
@@ -35,9 +36,11 @@ namespace IIIFComponents {
                                                </div>');
 
             this._$metadataItemTemplate =   $('<div class="item">\
-                                                   <div class="header"></div>\
-                                                   <div class="text"></div>\
+                                                   <div class="label"></div>\
+                                                   <div class="values"></div>\
                                                </div>');
+            
+            this._$metadataItemValueTemplate = $('<div class="value"></div>');
 
             this._$copyTextTemplate =       $('<div class="copyText" alt="' + this.options.content.copyToClipboard  + '" title="' + this.options.content.copyToClipboard + '">\
                                                    <div class="copiedText">' + this.options.content.copiedToClipboard + ' </div>\
@@ -83,7 +86,8 @@ namespace IIIFComponents {
                 manifestDisplayOrder: "",
                 manifestExclude: "",
                 range: null,
-                sanitizer: function(html) { return html }
+                sanitizer: function(html) { return html },
+                showAllLanguages: false
             }
         }
 
@@ -231,16 +235,16 @@ namespace IIIFComponents {
             return value.toLowerCase().replace(/ /g, "");
         }
 
-        private _render() {
+        private _render(): void {
 
             $.each(this._metadataGroups, (index: number, metadataGroup: MetadataGroup) => {
                 var $metadataGroup: JQuery = this._buildMetadataGroup(metadataGroup);
                 this._$metadataGroups.append($metadataGroup);
 
                 if (this.options.limitType === MetadataComponentOptions.LimitType.LINES) {
-                    $metadataGroup.find('.text').toggleExpandTextByLines(this.options.limit, this.options.content.less, this.options.content.more, () => {});
+                    $metadataGroup.find('.value').toggleExpandTextByLines(this.options.limit, this.options.content.less, this.options.content.more, () => {});
                 } else if (this.options.limitType === MetadataComponentOptions.LimitType.CHARS) {
-                    $metadataGroup.find('.text').ellipsisHtmlFixed(this.options.limit, null);
+                    $metadataGroup.find('.value').ellipsisHtmlFixed(this.options.limit, null);
                 }
             });
         }
@@ -270,55 +274,73 @@ namespace IIIFComponents {
             var $items: JQuery = $metadataGroup.find('.items');
 
             for (var i = 0; i < metadataGroup.items.length; i++) {
-
-                var $metadataItem: JQuery = this._$metadataItemTemplate.clone();
-                var $header: JQuery = $metadataItem.find('.header');
-                var $text: JQuery = $metadataItem.find('.text');
-
                 var item: Manifold.MetadataItem = metadataGroup.items[i];
-
-                item.setLabel(this._sanitize(item.getLabel()));
-                item.setValue(this._sanitize(<string>item.getValue()));
-
-                if (item.isRootLevel) {
-                    switch (item.getLabel().toLowerCase()) {
-                        case "attribution":
-                            item.setLabel(this.options.content.attribution);
-                            break;
-                        case "description":
-                            item.setLabel(this.options.content.description);
-                            break;
-                        case "license":
-                            item.setLabel(this.options.content.license);
-                            break;
-                        case "logo":
-                            item.setLabel(this.options.content.logo);
-                            break;
-                    }
-                }
-
-                // replace \n with <br>
-                item.setValue(item.getValue().replace('\n', '<br>'));
-
-                $header.html(item.getLabel());
-                $text.html(<string>item.getValue());
-                $text.targetBlank();
-
-                item.setLabel(item.getLabel().trim());
-                item.setLabel(item.getLabel().toLowerCase());
-
-                $metadataItem.addClass(item.getLabel().toCssClass());
-
-                if (this.options.copyToClipboardEnabled && Utils.Clipboard.supportsCopy() && $text.text() && $header.text()){
-                    this._addCopyButton($metadataItem, $header);
-                }
-
+                var $metadataItem: JQuery = this._buildMetadataItem(item);
                 $items.append($metadataItem);
             }
 
             return $metadataGroup;
         }
+
+        private _buildMetadataItem(item: MetadataItem): JQuery {
+            var $metadataItem: JQuery = this._$metadataItemTemplate.clone();
+            var $label: JQuery = $metadataItem.find('.label');
+            var $values: JQuery = $metadataItem.find('.values');
+
+            var label: string = item.getLabel();
+
+            if (item.isRootLevel) {
+                switch (label.toLowerCase()) {
+                    case "attribution":
+                        label = this.options.content.attribution;
+                        break;
+                    case "description":
+                        label = this.options.content.description;
+                        break;
+                    case "license":
+                        label = this.options.content.license;
+                        break;
+                    case "logo":
+                        label = this.options.content.logo;
+                        break;
+                }
+            }
+
+            label = this._sanitize(label);
+            $label.html(label);
+
+            $metadataItem.addClass(label.toCssClass());
+
+            var value: string;
+            var $value: JQuery;
+
+            if (this.options.showAllLanguages && item.value.length > 1) {
+                for (var i = 0; i < item.value.length; i++) {
+                    var translation: Manifesto.Translation = item.value[i];
+                    $value = this._buildMetadataItemValue(translation.value);
+                    $values.append($value);
+                }
+            } else {
+                $value = this._buildMetadataItemValue(item.getValue());
+                $values.append($value);
+            }
+
+            // if (this.options.copyToClipboardEnabled && Utils.Clipboard.supportsCopy() && $value.text() && $label.text()){
+            //     this._addCopyButton($metadataItem, $label);
+            // }
+
+            return $metadataItem;
+        }
         
+        private _buildMetadataItemValue(value: string): JQuery {
+            value = this._sanitize(value);
+            value = value.replace('\n', '<br>'); // replace \n with <br>
+            var $value: JQuery = this._$metadataItemValueTemplate.clone();
+            $value.html(value);
+            $value.targetBlank();
+            return $value;
+        }
+
         private _addCopyButton($elem: JQuery, $header: JQuery): void {
             var $copyBtn = this._$copyTextTemplate.clone();
             var $copiedText = $copyBtn.children();
