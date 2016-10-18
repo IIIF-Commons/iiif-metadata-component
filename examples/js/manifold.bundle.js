@@ -591,7 +591,7 @@ var Manifesto;
             return new Manifesto.IIIFResourceType(this.getProperty('@type'));
         };
         ManifestResource.prototype.getLabel = function () {
-            return Manifesto.Utils.getLocalisedValue(this.getProperty('label'), this.options.locale);
+            return Manifesto.TranslationCollection.parse(this.getProperty('label'), this.options.locale);
         };
         ManifestResource.prototype.getMetadata = function () {
             var _metadata = this.getProperty('metadata');
@@ -600,7 +600,8 @@ var Manifesto;
                 return metadata;
             for (var i = 0; i < _metadata.length; i++) {
                 var item = _metadata[i];
-                var metadataItem = new Manifesto.MetadataItem(item, this.options.locale);
+                var metadataItem = new Manifesto.MetadataItem(this.options.locale);
+                metadataItem.parse(item);
                 metadata.push(metadataItem);
             }
             return metadata;
@@ -842,10 +843,18 @@ var Manifesto;
             this.options = _assign(defaultOptions, options);
         }
         IIIFResource.prototype.getAttribution = function () {
-            return Manifesto.Utils.getLocalisedValue(this.getProperty('attribution'), this.options.locale);
+            var attribution = this.getProperty('attribution');
+            if (attribution) {
+                return Manifesto.TranslationCollection.parse(attribution, this.options.locale);
+            }
+            return [];
         };
         IIIFResource.prototype.getDescription = function () {
-            return Manifesto.Utils.getLocalisedValue(this.getProperty('description'), this.options.locale);
+            var description = this.getProperty('description');
+            if (description) {
+                return Manifesto.TranslationCollection.parse(description, this.options.locale);
+            }
+            return [];
         };
         IIIFResource.prototype.getIIIFResourceType = function () {
             return new Manifesto.IIIFResourceType(this.getProperty('@type'));
@@ -868,10 +877,14 @@ var Manifesto;
             return this.getProperty('related');
         };
         IIIFResource.prototype.getSeeAlso = function () {
-            return Manifesto.Utils.getLocalisedValue(this.getProperty('seeAlso'), this.options.locale);
+            return this.getProperty('seeAlso');
         };
         IIIFResource.prototype.getLabel = function () {
-            return Manifesto.Utils.getLocalisedValue(this.getProperty('label'), this.options.locale);
+            var label = this.getProperty('label');
+            if (label) {
+                return Manifesto.TranslationCollection.parse(label, this.options.locale);
+            }
+            return [];
         };
         IIIFResource.prototype.getDefaultTree = function () {
             this.defaultTree = new Manifesto.TreeNode('root');
@@ -894,7 +907,7 @@ var Manifesto;
                     var options = that.options;
                     options.navDate = that.getNavDate();
                     Manifesto.Utils.loadResource(that.__jsonld['@id']).then(function (data) {
-                        that.parentLabel = that.getLabel();
+                        that.parentLabel = Manifesto.TranslationCollection.getValue(that.getLabel(), options.locale);
                         var parsed = Manifesto.Deserialiser.parse(data, options);
                         that = _assign(that, parsed);
                         that.index = options.index;
@@ -1178,7 +1191,7 @@ var Manifesto;
                 for (var i = 0; i < parentCollection.getManifests().length; i++) {
                     var manifest = parentCollection.getManifests()[i];
                     var tree = manifest.getDefaultTree();
-                    tree.label = manifest.parentLabel || manifest.getLabel() || 'manifest ' + (i + 1);
+                    tree.label = manifest.parentLabel || Manifesto.TranslationCollection.getValue(manifest.getLabel(), this.options.locale) || 'manifest ' + (i + 1);
                     tree.navDate = manifest.getNavDate();
                     tree.data.id = manifest.id;
                     tree.data.type = Manifesto.TreeNodeType.MANIFEST.toString();
@@ -1191,7 +1204,7 @@ var Manifesto;
                 for (var i = 0; i < parentCollection.getCollections().length; i++) {
                     var collection = parentCollection.getCollections()[i];
                     var tree = collection.getDefaultTree();
-                    tree.label = collection.parentLabel || collection.getLabel() || 'collection ' + (i + 1);
+                    tree.label = collection.parentLabel || Manifesto.TranslationCollection.getValue(collection.getLabel(), this.options.locale) || 'collection ' + (i + 1);
                     tree.navDate = collection.getNavDate();
                     tree.data.id = collection.id;
                     tree.data.type = Manifesto.TreeNodeType.COLLECTION.toString();
@@ -1266,7 +1279,7 @@ var Manifesto;
             return treeRoot;
         };
         Range.prototype._parseTreeNode = function (node, range) {
-            node.label = range.getLabel();
+            node.label = Manifesto.TranslationCollection.getValue(range.getLabel(), this.options.locale);
             node.data = range;
             node.data.type = Manifesto.TreeNodeType.RANGE.toString();
             range.treeNode = node;
@@ -1368,7 +1381,7 @@ var Manifesto;
             for (var i = 0; i < this.getTotalCanvases(); i++) {
                 var canvas = this.getCanvasByIndex(i);
                 // check if there's a literal match
-                if (canvas.getLabel() === label) {
+                if (Manifesto.TranslationCollection.getValue(canvas.getLabel(), this.options.locale) === label) {
                     return i;
                 }
                 // check if there's a match for double-page spreads e.g. 100-101, 100_101, 100 101
@@ -1390,7 +1403,7 @@ var Manifesto;
         Sequence.prototype.getLastCanvasLabel = function (alphanumeric) {
             for (var i = this.getTotalCanvases() - 1; i >= 0; i--) {
                 var canvas = this.getCanvasByIndex(i);
-                var label = canvas.getLabel();
+                var label = Manifesto.TranslationCollection.getValue(canvas.getLabel(), this.options.locale);
                 if (alphanumeric) {
                     var regExp = /^[a-zA-Z0-9]*$/;
                     if (regExp.test(label)) {
@@ -1701,7 +1714,7 @@ var Manifesto;
                 this.height = width;
             }
             this.uri = canvas.getCanonicalImageUri(width);
-            this.label = canvas.getLabel();
+            this.label = Manifesto.TranslationCollection.getValue(canvas.getLabel()); // todo: pass locale?
         }
         return Thumb;
     }());
@@ -1793,7 +1806,10 @@ var Manifesto;
             return 'default';
         };
         Utils.getInexactLocale = function (locale) {
-            return locale.substr(0, locale.indexOf('-'));
+            if (locale.indexOf('-') !== -1) {
+                return locale.substr(0, locale.indexOf('-'));
+            }
+            return locale;
         };
         Utils.getLocalisedValue = function (resource, locale) {
             // if the resource is not an array of translations, return the string.
@@ -2161,29 +2177,117 @@ var Manifesto;
 var Manifesto;
 (function (Manifesto) {
     var MetadataItem = (function () {
-        function MetadataItem(resource, defaultLocale) {
-            this.resource = resource;
+        function MetadataItem(defaultLocale) {
             this.defaultLocale = defaultLocale;
+        }
+        MetadataItem.prototype.parse = function (resource) {
+            this.resource = resource;
             this.label = Manifesto.TranslationCollection.parse(this.resource.label, this.defaultLocale);
             this.value = Manifesto.TranslationCollection.parse(this.resource.value, this.defaultLocale);
-        }
+        };
+        // shortcuts to get/set values based on default locale
         MetadataItem.prototype.getLabel = function () {
-            var _this = this;
-            if (this.label.length) {
-                return this.label.en().where(function (x) { return x.locale === _this.defaultLocale || x.locale === Manifesto.Utils.getInexactLocale(_this.defaultLocale); }).first().value;
+            if (this.label) {
+                return Manifesto.TranslationCollection.getValue(this.label, this.defaultLocale);
             }
             return null;
         };
-        MetadataItem.prototype.getValue = function () {
+        MetadataItem.prototype.setLabel = function (value) {
             var _this = this;
-            if (this.value.length) {
-                return this.value.en().where(function (x) { return x.locale === _this.defaultLocale || x.locale === Manifesto.Utils.getInexactLocale(_this.defaultLocale); }).first().value;
+            if (this.label && this.label.length) {
+                var t = this.label.en().where(function (x) { return x.locale === _this.defaultLocale || x.locale === Manifesto.Utils.getInexactLocale(_this.defaultLocale); }).first();
+                if (t)
+                    t.value = value;
+            }
+        };
+        MetadataItem.prototype.getValue = function () {
+            if (this.value) {
+                return Manifesto.TranslationCollection.getValue(this.value, this.defaultLocale);
             }
             return null;
+        };
+        MetadataItem.prototype.setValue = function (value) {
+            var _this = this;
+            if (this.value && this.value.length) {
+                var t = this.value.en().where(function (x) { return x.locale === _this.defaultLocale || x.locale === Manifesto.Utils.getInexactLocale(_this.defaultLocale); }).first();
+                if (t)
+                    t.value = value;
+            }
         };
         return MetadataItem;
     }());
     Manifesto.MetadataItem = MetadataItem;
+})(Manifesto || (Manifesto = {}));
+
+var Manifesto;
+(function (Manifesto) {
+    var Translation = (function () {
+        function Translation(value, locale) {
+            this.value = value;
+            this.locale = locale;
+        }
+        return Translation;
+    }());
+    Manifesto.Translation = Translation;
+})(Manifesto || (Manifesto = {}));
+
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var Manifesto;
+(function (Manifesto) {
+    var TranslationCollection = (function (_super) {
+        __extends(TranslationCollection, _super);
+        function TranslationCollection() {
+            _super.apply(this, arguments);
+        }
+        TranslationCollection.parse = function (translation, defaultLocale) {
+            var tc = [];
+            var t;
+            if (_isArray(translation)) {
+                for (var i = 0; i < translation.length; i++) {
+                    var value = translation[i];
+                    if (_isString(value)) {
+                        t = new Manifesto.Translation(value, defaultLocale);
+                    }
+                    else {
+                        t = new Manifesto.Translation(value['@value'], value['@language'] || defaultLocale);
+                    }
+                    tc.push(t);
+                }
+            }
+            else if (_isString(translation)) {
+                // if it's just a single string value, create one translation in the configured locale
+                t = new Manifesto.Translation(translation, defaultLocale);
+                tc.push(t);
+                return tc;
+            }
+            else {
+                // it's an object
+                t = new Manifesto.Translation(translation['@value'], translation['@language'] || defaultLocale);
+                tc.push(t);
+                return tc;
+            }
+            return tc;
+        };
+        TranslationCollection.getValue = function (translationCollection, locale) {
+            if (translationCollection.length) {
+                if (locale) {
+                    var translation = translationCollection.en().where(function (t) { return t.locale === locale || Manifesto.Utils.getInexactLocale(t.locale) === Manifesto.Utils.getInexactLocale(locale); }).first();
+                    if (translation) {
+                        return translation.value;
+                    }
+                }
+                // return the first value
+                return translationCollection[0].value;
+            }
+            return null;
+        };
+        return TranslationCollection;
+    }(Array));
+    Manifesto.TranslationCollection = TranslationCollection;
 })(Manifesto || (Manifesto = {}));
 
 global.manifesto = global.Manifesto = module.exports = {
@@ -2196,6 +2300,8 @@ global.manifesto = global.Manifesto = module.exports = {
     ResourceFormat: new Manifesto.ResourceFormat(),
     ResourceType: new Manifesto.ResourceType(),
     ServiceProfile: new Manifesto.ServiceProfile(),
+    Translation: Manifesto.Translation,
+    TranslationCollection: Manifesto.TranslationCollection,
     TreeNodeType: new Manifesto.TreeNodeType(),
     Utils: Manifesto.Utils,
     ViewingDirection: new Manifesto.ViewingDirection(),
@@ -2324,6 +2430,8 @@ global.manifesto = global.Manifesto = module.exports = {
 /// <reference path="./TreeNodeType.ts" />
 /// <reference path="./Utils.ts" />
 /// <reference path="./MetadataItem.ts" />
+/// <reference path="./Translation.ts" />
+/// <reference path="./TranslationCollection.ts" />
 /// <reference path="./Manifesto.ts" /> 
 
 var __extends = (this && this.__extends) || function (d, b) {
@@ -2438,52 +2546,6 @@ var Manifesto;
         return Resource;
     }(Manifesto.ManifestResource));
     Manifesto.Resource = Resource;
-})(Manifesto || (Manifesto = {}));
-
-var Manifesto;
-(function (Manifesto) {
-    var Translation = (function () {
-        function Translation(value, locale) {
-            this.value = value;
-            this.locale = locale;
-        }
-        return Translation;
-    }());
-    Manifesto.Translation = Translation;
-})(Manifesto || (Manifesto = {}));
-
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-var Manifesto;
-(function (Manifesto) {
-    var TranslationCollection = (function (_super) {
-        __extends(TranslationCollection, _super);
-        function TranslationCollection() {
-            _super.apply(this, arguments);
-        }
-        TranslationCollection.parse = function (translation, defaultLocale) {
-            var tc = [];
-            if (!_isArray(translation)) {
-                // if it's just a single string value, create one translation in the configured locale
-                var t = new Manifesto.Translation(translation, defaultLocale);
-                tc.push(t);
-                return tc;
-            }
-            else {
-                for (var i = 0; i < translation.length; i++) {
-                    var value = translation[i];
-                    var t = new Manifesto.Translation(value['@value'], value['@language']);
-                    tc.push(t);
-                }
-            }
-            return tc;
-        };
-        return TranslationCollection;
-    }(Array));
-    Manifesto.TranslationCollection = TranslationCollection;
 })(Manifesto || (Manifesto = {}));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
@@ -12530,6 +12592,7 @@ var Manifold;
     var Bootstrapper = (function () {
         function Bootstrapper(options) {
             this._options = options;
+            this._options.locale = this._options.locale || 'en-GB'; // default locale
         }
         Bootstrapper.prototype.bootstrap = function () {
             var that = this;
@@ -12566,7 +12629,7 @@ var Manifold;
         };
         Bootstrapper.prototype._loaded = function (bootstrapper, json, resolve, reject) {
             var iiifResource = manifesto.create(json, {
-                locale: bootstrapper._options.locale || 'en-GB'
+                locale: bootstrapper._options.locale
             });
             // only set the root IIIFResource on the first load
             if (!bootstrapper._options.iiifResource) {
@@ -12754,7 +12817,7 @@ var Manifold;
             return service.getService(manifesto.ServiceProfile.autoComplete());
         };
         Helper.prototype.getAttribution = function () {
-            return this.manifest.getAttribution();
+            return Manifesto.TranslationCollection.getValue(this.manifest.getAttribution());
         };
         Helper.prototype.getCanvases = function () {
             return this.getCurrentSequence().getCanvases();
@@ -12861,7 +12924,7 @@ var Manifold;
             }
         };
         Helper.prototype.getLabel = function () {
-            return this.manifest.getLabel();
+            return Manifesto.TranslationCollection.getValue(this.manifest.getLabel());
         };
         Helper.prototype.getLastCanvasLabel = function (alphanumeric) {
             return this.getCurrentSequence().getLastCanvasLabel(alphanumeric);
@@ -12890,21 +12953,17 @@ var Manifold;
             if (manifestMetadata && manifestMetadata.length) {
                 manifestGroup.addMetadata(manifestMetadata, true);
             }
-            if (this.manifest.getDescription()) {
-                var item = {
-                    label: "description",
-                    value: this.manifest.getDescription()
-                };
-                var metadataItem = new Manifold.MetadataItem(item, this.options.locale);
+            if (this.manifest.getDescription().length) {
+                var metadataItem = new Manifesto.MetadataItem(this.options.locale);
+                metadataItem.label = [new Manifesto.Translation("description", this.options.locale)];
+                metadataItem.value = this.manifest.getDescription();
                 metadataItem.isRootLevel = true;
                 manifestGroup.addItem(metadataItem);
             }
-            if (this.manifest.getAttribution()) {
-                var item = {
-                    label: "attribution",
-                    value: this.manifest.getAttribution()
-                };
-                var metadataItem = new Manifold.MetadataItem(item, this.options.locale);
+            if (this.manifest.getAttribution().length) {
+                var metadataItem = new Manifesto.MetadataItem(this.options.locale);
+                metadataItem.label = [new Manifesto.Translation("attribution", this.options.locale)];
+                metadataItem.value = this.manifest.getAttribution();
                 metadataItem.isRootLevel = true;
                 manifestGroup.addItem(metadataItem);
             }
@@ -12913,7 +12972,8 @@ var Manifold;
                     label: "license",
                     value: (options && options.licenseFormatter) ? options.licenseFormatter.format(this.manifest.getLicense()) : this.manifest.getLicense()
                 };
-                var metadataItem = new Manifold.MetadataItem(item, this.options.locale);
+                var metadataItem = new Manifesto.MetadataItem(this.options.locale);
+                metadataItem.parse(item);
                 metadataItem.isRootLevel = true;
                 manifestGroup.addItem(metadataItem);
             }
@@ -12922,7 +12982,8 @@ var Manifold;
                     label: "logo",
                     value: '<img src="' + this.manifest.getLogo() + '"/>'
                 };
-                var metadataItem = new Manifold.MetadataItem(item, this.options.locale);
+                var metadataItem = new Manifesto.MetadataItem(this.options.locale);
+                metadataItem.parse(item);
                 metadataItem.isRootLevel = true;
                 manifestGroup.addItem(metadataItem);
             }
@@ -13400,55 +13461,19 @@ var Manifold;
             this.label = label;
         }
         MetadataGroup.prototype.addItem = function (item) {
-            var metadataItem = this._convertItem(item);
-            this.items.push(metadataItem);
+            this.items.push(item);
         };
         MetadataGroup.prototype.addMetadata = function (metadata, isRootLevel) {
             if (isRootLevel === void 0) { isRootLevel = false; }
             for (var i = 0; i < metadata.length; i++) {
                 var item = metadata[i];
-                var metadataItem = this._convertItem(item);
-                metadataItem.isRootLevel = isRootLevel;
-                this.addItem(metadataItem);
+                item.isRootLevel = isRootLevel;
+                this.addItem(item);
             }
-        };
-        MetadataGroup.prototype._convertItem = function (item) {
-            return new Manifold.MetadataItem(item.resource, item.defaultLocale);
         };
         return MetadataGroup;
     }());
     Manifold.MetadataGroup = MetadataGroup;
-})(Manifold || (Manifold = {}));
-
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-var Manifold;
-(function (Manifold) {
-    var MetadataItem = (function (_super) {
-        __extends(MetadataItem, _super);
-        function MetadataItem(item, defaultLocale) {
-            _super.call(this, item, defaultLocale);
-        }
-        MetadataItem.prototype.setLabel = function (value) {
-            var _this = this;
-            if (this.label.length) {
-                var t = this.label.en().where(function (x) { return x.locale === _this.defaultLocale || x.locale === Manifesto.Utils.getInexactLocale(_this.defaultLocale); }).first();
-                t.value = value;
-            }
-        };
-        MetadataItem.prototype.setValue = function (value) {
-            var _this = this;
-            if (this.value.length) {
-                var t = this.value.en().where(function (x) { return x.locale === _this.defaultLocale || x.locale === Manifesto.Utils.getInexactLocale(_this.defaultLocale); }).first();
-                t.value = value;
-            }
-        };
-        return MetadataItem;
-    }(Manifesto.MetadataItem));
-    Manifold.MetadataItem = MetadataItem;
 })(Manifold || (Manifold = {}));
 
 var Manifold;

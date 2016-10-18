@@ -646,7 +646,7 @@ declare module Manifesto {
         options: IManifestoOptions;
         constructor(jsonld?: any, options?: IManifestoOptions);
         getIIIFResourceType(): IIIFResourceType;
-        getLabel(): string;
+        getLabel(): TranslationCollection;
         getMetadata(): MetadataItem[];
         getRendering(format: RenderingFormat | string): IRendering;
         getRenderings(): IRendering[];
@@ -694,15 +694,15 @@ declare module Manifesto {
         parentCollection: ICollection;
         parentLabel: string;
         constructor(jsonld?: any, options?: IManifestoOptions);
-        getAttribution(): string;
-        getDescription(): string;
+        getAttribution(): TranslationCollection;
+        getDescription(): TranslationCollection;
         getIIIFResourceType(): IIIFResourceType;
         getLogo(): string;
         getLicense(): string;
         getNavDate(): Date;
         getRelated(): any;
         getSeeAlso(): any;
-        getLabel(): string;
+        getLabel(): TranslationCollection;
         getDefaultTree(): ITreeNode;
         isCollection(): boolean;
         isManifest(): boolean;
@@ -948,9 +948,27 @@ declare module Manifesto {
         value: TranslationCollection;
         defaultLocale: string;
         resource: any;
-        constructor(resource: any, defaultLocale: string);
+        constructor(defaultLocale: string);
+        parse(resource: any): void;
         getLabel(): string;
+        setLabel(value: string): void;
         getValue(): string;
+        setValue(value: string): void;
+    }
+}
+
+declare module Manifesto {
+    class Translation {
+        value: string;
+        locale: string;
+        constructor(value: string, locale: string);
+    }
+}
+
+declare module Manifesto {
+    class TranslationCollection extends Array<Translation> {
+        static parse(translation: any, defaultLocale: string): TranslationCollection;
+        static getValue(translationCollection: TranslationCollection, locale?: string): string;
     }
 }
 
@@ -985,6 +1003,8 @@ declare module Manifesto {
 /// <reference path="TreeNodeType.d.ts" />
 /// <reference path="Utils.d.ts" />
 /// <reference path="MetadataItem.d.ts" />
+/// <reference path="Translation.d.ts" />
+/// <reference path="TranslationCollection.d.ts" />
 /// <reference path="Manifesto.d.ts" />
 
 declare module Manifesto {
@@ -1069,11 +1089,11 @@ declare module Manifesto {
 declare module Manifesto {
     interface IIIIFResource extends IManifestResource {
         defaultTree: ITreeNode;
-        getAttribution(): string;
+        getAttribution(): TranslationCollection;
         getDefaultTree(): ITreeNode;
-        getDescription(): string;
+        getDescription(): TranslationCollection;
         getIIIFResourceType(): IIIFResourceType;
-        getLabel(): string;
+        getLabel(): TranslationCollection;
         getLicense(): string;
         getLogo(): string;
         getNavDate(): Date;
@@ -1136,6 +1156,8 @@ interface IManifesto {
     ResourceType: Manifesto.ResourceType;
     ServiceProfile: Manifesto.ServiceProfile;
     StatusCodes: Manifesto.IStatusCodes;
+    Translation: any;
+    TranslationCollection: any;
     TreeNodeType: Manifesto.TreeNodeType;
     Utils: any;
     ViewingDirection: Manifesto.ViewingDirection;
@@ -1157,8 +1179,8 @@ declare module Manifesto {
     interface IManifestResource extends IJSONLDResource {
         externalResource: Manifesto.IExternalResource;
         options: IManifestoOptions;
-        getLabel(): string;
-        getMetadata(): any;
+        getLabel(): TranslationCollection;
+        getMetadata(): MetadataItem[];
         getRendering(format: RenderingFormat | string): IRendering;
         getRenderings(): IRendering[];
         getService(profile: ServiceProfile | string): IService;
@@ -1253,20 +1275,6 @@ declare module Manifesto {
         getHeight(): number;
         getMaxWidth(): number;
         getMaxHeight(): number;
-    }
-}
-
-declare module Manifesto {
-    class Translation {
-        value: string;
-        locale: string;
-        constructor(value: string, locale: string);
-    }
-}
-
-declare module Manifesto {
-    class TranslationCollection extends Array<Translation> {
-        static parse(translation: any, defaultLocale: string): TranslationCollection;
     }
 }
 
@@ -1430,12 +1438,13 @@ declare namespace Manifold {
 
 declare namespace Manifold {
     interface IHelper {
+        canvasIndex: number;
+        collectionIndex: number;
         iiifResource: Manifesto.IIIIFResource;
         iiifResourceUri: string;
         manifest: Manifesto.IManifest;
-        collectionIndex: number;
         manifestIndex: number;
-        canvasIndex: number;
+        options: IManifoldOptions;
         sequenceIndex: number;
         getAutoCompleteService(): Manifesto.IService;
         getAttribution(): string;
@@ -1524,8 +1533,6 @@ declare namespace Manifold {
 declare namespace Manifold {
     interface IMetadataItem extends Manifesto.MetadataItem {
         isRootLevel: boolean;
-        setLabel(value: string): void;
-        setValue(value: string): void;
     }
 }
 
@@ -1561,20 +1568,10 @@ declare namespace Manifold {
     class MetadataGroup {
         resource: Manifesto.IManifestResource;
         label: string;
-        items: Manifold.MetadataItem[];
+        items: Manifold.IMetadataItem[];
         constructor(resource: Manifesto.IManifestResource, label?: string);
-        addItem(item: Manifold.MetadataItem): void;
+        addItem(item: Manifold.IMetadataItem): void;
         addMetadata(metadata: Manifesto.MetadataItem[], isRootLevel?: boolean): void;
-        private _convertItem(item);
-    }
-}
-
-declare namespace Manifold {
-    class MetadataItem extends Manifesto.MetadataItem {
-        isRootLevel: boolean;
-        constructor(item: any, defaultLocale: string);
-        setLabel(value: string): void;
-        setValue(value: string): void;
     }
 }
 

@@ -53,12 +53,13 @@ declare namespace IIIFComponents {
         manifestDisplayOrder: string;
         manifestExclude: string;
         range: Manifesto.IRange;
+        rtlLanguageCodes: string;
         sanitizer: (html: string) => string;
         showAllLanguages: boolean;
     }
 }
 
-import MetadataItem = Manifold.MetadataItem;
+import MetadataItem = Manifold.IMetadataItem;
 import MetadataGroup = Manifold.MetadataGroup;
 declare namespace IIIFComponents {
     class MetadataComponent extends _Components.BaseComponent implements IMetadataComponent {
@@ -83,7 +84,9 @@ declare namespace IIIFComponents {
         private _render();
         private _buildMetadataGroup(metadataGroup);
         private _buildMetadataItem(item);
-        private _buildMetadataItemValue(value);
+        private _getItemLocale(item);
+        private _buildMetadataItemValue(value, locale);
+        private _addReadingDirection($elem, locale);
         private _addCopyButton($elem, $header);
         private _copyValueForLabel(label);
         private _readCSV(config, normalise?);

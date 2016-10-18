@@ -1,4 +1,4 @@
-import MetadataItem = Manifold.MetadataItem;
+import MetadataItem = Manifold.IMetadataItem;
 import MetadataGroup = Manifold.MetadataGroup;
 
 namespace IIIFComponents {
@@ -86,6 +86,7 @@ namespace IIIFComponents {
                 manifestDisplayOrder: "",
                 manifestExclude: "",
                 range: null,
+                rtlLanguageCodes: "ar, ara, dv, div, he, heb, ur, urd",
                 sanitizer: function(html) { return html },
                 showAllLanguages: false
             }
@@ -232,7 +233,11 @@ namespace IIIFComponents {
         // }
 
         private _normalise(value: string): string {
-            return value.toLowerCase().replace(/ /g, "");
+            if (value) {
+                return value.toLowerCase().replace(/ /g, "");
+            }
+            
+            return null;
         }
 
         private _render(): void {
@@ -274,7 +279,7 @@ namespace IIIFComponents {
             var $items: JQuery = $metadataGroup.find('.items');
 
             for (var i = 0; i < metadataGroup.items.length; i++) {
-                var item: Manifold.MetadataItem = metadataGroup.items[i];
+                var item: MetadataItem = metadataGroup.items[i];
                 var $metadataItem: JQuery = this._buildMetadataItem(item);
                 $items.append($metadataItem);
             }
@@ -309,19 +314,22 @@ namespace IIIFComponents {
             label = this._sanitize(label);
             $label.html(label);
 
+            // rtl?
+            this._addReadingDirection($label, this._getItemLocale(item));
+
             $metadataItem.addClass(label.toCssClass());
 
             var value: string;
             var $value: JQuery;
 
-            if (this.options.showAllLanguages && item.value.length > 1) {
+            if (this.options.showAllLanguages && item.value && item.value.length > 1) {
                 for (var i = 0; i < item.value.length; i++) {
                     var translation: Manifesto.Translation = item.value[i];
-                    $value = this._buildMetadataItemValue(translation.value);
+                    $value = this._buildMetadataItemValue(translation.value, translation.locale);
                     $values.append($value);
                 }
             } else {
-                $value = this._buildMetadataItemValue(item.getValue());
+                $value = this._buildMetadataItemValue(item.getValue(), this._getItemLocale(item));
                 $values.append($value);
             }
 
@@ -332,13 +340,38 @@ namespace IIIFComponents {
             return $metadataItem;
         }
         
-        private _buildMetadataItemValue(value: string): JQuery {
+        private _getItemLocale(item: MetadataItem): string {
+            if (item.value && item.value.length) {
+                return item.value[0].locale;
+            } else {
+                return item.defaultLocale || this.options.helper.options.locale;
+            }
+        }
+
+        private _buildMetadataItemValue(value: string, locale: string): JQuery {
             value = this._sanitize(value);
             value = value.replace('\n', '<br>'); // replace \n with <br>
             var $value: JQuery = this._$metadataItemValueTemplate.clone();
             $value.html(value);
             $value.targetBlank();
+
+            // rtl?
+            if (locale) {
+                this._addReadingDirection($value, locale);
+            }
+
             return $value;
+        }
+
+        private _addReadingDirection($elem: JQuery, locale: string) {
+            locale = Manifesto.Utils.getInexactLocale(locale);
+            var rtlLanguages: string[] = this._readCSV(this.options.rtlLanguageCodes);
+            var match: boolean = rtlLanguages.en().where(x => x === locale).toArray().length > 0;
+
+            if (match) {
+                $elem.prop('dir', 'rtl');
+                $elem.addClass('rtl');
+            }
         }
 
         private _addCopyButton($elem: JQuery, $header: JQuery): void {

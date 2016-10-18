@@ -30,9 +30,10 @@
             // https://iiif.riksarkivet.se/arkis!C0000263/manifest (canvas metadata)
             // https://iiif.riksarkivet.se/arkis!F0001185/manifest (merge source reference)
             // https://edsilv.github.io/test-manifests/all-metadata.json (all metadata)
+            // http://tomcrane.github.io/scratch/manifests/vdc_100000004987.0x000001.json (rtl)
 
             Manifold.loadManifest({
-                iiifResourceUri: 'https://edsilv.github.io/test-manifests/all-metadata.json'
+                iiifResourceUri: 'http://tomcrane.github.io/scratch/manifests/vdc_100000004987.0x000001.json'
             }).then(function(h){
                 
                 helper = h;

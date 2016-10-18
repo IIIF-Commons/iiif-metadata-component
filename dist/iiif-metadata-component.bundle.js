@@ -1101,7 +1101,7 @@ var Manifesto;
             return new Manifesto.IIIFResourceType(this.getProperty('@type'));
         };
         ManifestResource.prototype.getLabel = function () {
-            return Manifesto.Utils.getLocalisedValue(this.getProperty('label'), this.options.locale);
+            return Manifesto.TranslationCollection.parse(this.getProperty('label'), this.options.locale);
         };
         ManifestResource.prototype.getMetadata = function () {
             var _metadata = this.getProperty('metadata');
@@ -1110,7 +1110,8 @@ var Manifesto;
                 return metadata;
             for (var i = 0; i < _metadata.length; i++) {
                 var item = _metadata[i];
-                var metadataItem = new Manifesto.MetadataItem(item, this.options.locale);
+                var metadataItem = new Manifesto.MetadataItem(this.options.locale);
+                metadataItem.parse(item);
                 metadata.push(metadataItem);
             }
             return metadata;
@@ -1352,10 +1353,18 @@ var Manifesto;
             this.options = _assign(defaultOptions, options);
         }
         IIIFResource.prototype.getAttribution = function () {
-            return Manifesto.Utils.getLocalisedValue(this.getProperty('attribution'), this.options.locale);
+            var attribution = this.getProperty('attribution');
+            if (attribution) {
+                return Manifesto.TranslationCollection.parse(attribution, this.options.locale);
+            }
+            return [];
         };
         IIIFResource.prototype.getDescription = function () {
-            return Manifesto.Utils.getLocalisedValue(this.getProperty('description'), this.options.locale);
+            var description = this.getProperty('description');
+            if (description) {
+                return Manifesto.TranslationCollection.parse(description, this.options.locale);
+            }
+            return [];
         };
         IIIFResource.prototype.getIIIFResourceType = function () {
             return new Manifesto.IIIFResourceType(this.getProperty('@type'));
@@ -1378,10 +1387,14 @@ var Manifesto;
             return this.getProperty('related');
         };
         IIIFResource.prototype.getSeeAlso = function () {
-            return Manifesto.Utils.getLocalisedValue(this.getProperty('seeAlso'), this.options.locale);
+            return this.getProperty('seeAlso');
         };
         IIIFResource.prototype.getLabel = function () {
-            return Manifesto.Utils.getLocalisedValue(this.getProperty('label'), this.options.locale);
+            var label = this.getProperty('label');
+            if (label) {
+                return Manifesto.TranslationCollection.parse(label, this.options.locale);
+            }
+            return [];
         };
         IIIFResource.prototype.getDefaultTree = function () {
             this.defaultTree = new Manifesto.TreeNode('root');
@@ -1404,7 +1417,7 @@ var Manifesto;
                     var options = that.options;
                     options.navDate = that.getNavDate();
                     Manifesto.Utils.loadResource(that.__jsonld['@id']).then(function (data) {
-                        that.parentLabel = that.getLabel();
+                        that.parentLabel = Manifesto.TranslationCollection.getValue(that.getLabel(), options.locale);
                         var parsed = Manifesto.Deserialiser.parse(data, options);
                         that = _assign(that, parsed);
                         that.index = options.index;
@@ -1688,7 +1701,7 @@ var Manifesto;
                 for (var i = 0; i < parentCollection.getManifests().length; i++) {
                     var manifest = parentCollection.getManifests()[i];
                     var tree = manifest.getDefaultTree();
-                    tree.label = manifest.parentLabel || manifest.getLabel() || 'manifest ' + (i + 1);
+                    tree.label = manifest.parentLabel || Manifesto.TranslationCollection.getValue(manifest.getLabel(), this.options.locale) || 'manifest ' + (i + 1);
                     tree.navDate = manifest.getNavDate();
                     tree.data.id = manifest.id;
                     tree.data.type = Manifesto.TreeNodeType.MANIFEST.toString();
@@ -1701,7 +1714,7 @@ var Manifesto;
                 for (var i = 0; i < parentCollection.getCollections().length; i++) {
                     var collection = parentCollection.getCollections()[i];
                     var tree = collection.getDefaultTree();
-                    tree.label = collection.parentLabel || collection.getLabel() || 'collection ' + (i + 1);
+                    tree.label = collection.parentLabel || Manifesto.TranslationCollection.getValue(collection.getLabel(), this.options.locale) || 'collection ' + (i + 1);
                     tree.navDate = collection.getNavDate();
                     tree.data.id = collection.id;
                     tree.data.type = Manifesto.TreeNodeType.COLLECTION.toString();
@@ -1776,7 +1789,7 @@ var Manifesto;
             return treeRoot;
         };
         Range.prototype._parseTreeNode = function (node, range) {
-            node.label = range.getLabel();
+            node.label = Manifesto.TranslationCollection.getValue(range.getLabel(), this.options.locale);
             node.data = range;
             node.data.type = Manifesto.TreeNodeType.RANGE.toString();
             range.treeNode = node;
@@ -1878,7 +1891,7 @@ var Manifesto;
             for (var i = 0; i < this.getTotalCanvases(); i++) {
                 var canvas = this.getCanvasByIndex(i);
                 // check if there's a literal match
-                if (canvas.getLabel() === label) {
+                if (Manifesto.TranslationCollection.getValue(canvas.getLabel(), this.options.locale) === label) {
                     return i;
                 }
                 // check if there's a match for double-page spreads e.g. 100-101, 100_101, 100 101
@@ -1900,7 +1913,7 @@ var Manifesto;
         Sequence.prototype.getLastCanvasLabel = function (alphanumeric) {
             for (var i = this.getTotalCanvases() - 1; i >= 0; i--) {
                 var canvas = this.getCanvasByIndex(i);
-                var label = canvas.getLabel();
+                var label = Manifesto.TranslationCollection.getValue(canvas.getLabel(), this.options.locale);
                 if (alphanumeric) {
                     var regExp = /^[a-zA-Z0-9]*$/;
                     if (regExp.test(label)) {
@@ -2211,7 +2224,7 @@ var Manifesto;
                 this.height = width;
             }
             this.uri = canvas.getCanonicalImageUri(width);
-            this.label = canvas.getLabel();
+            this.label = Manifesto.TranslationCollection.getValue(canvas.getLabel()); // todo: pass locale?
         }
         return Thumb;
     }());
@@ -2303,7 +2316,10 @@ var Manifesto;
             return 'default';
         };
         Utils.getInexactLocale = function (locale) {
-            return locale.substr(0, locale.indexOf('-'));
+            if (locale.indexOf('-') !== -1) {
+                return locale.substr(0, locale.indexOf('-'));
+            }
+            return locale;
         };
         Utils.getLocalisedValue = function (resource, locale) {
             // if the resource is not an array of translations, return the string.
@@ -2671,29 +2687,117 @@ var Manifesto;
 var Manifesto;
 (function (Manifesto) {
     var MetadataItem = (function () {
-        function MetadataItem(resource, defaultLocale) {
-            this.resource = resource;
+        function MetadataItem(defaultLocale) {
             this.defaultLocale = defaultLocale;
+        }
+        MetadataItem.prototype.parse = function (resource) {
+            this.resource = resource;
             this.label = Manifesto.TranslationCollection.parse(this.resource.label, this.defaultLocale);
             this.value = Manifesto.TranslationCollection.parse(this.resource.value, this.defaultLocale);
-        }
+        };
+        // shortcuts to get/set values based on default locale
         MetadataItem.prototype.getLabel = function () {
-            var _this = this;
-            if (this.label.length) {
-                return this.label.en().where(function (x) { return x.locale === _this.defaultLocale || x.locale === Manifesto.Utils.getInexactLocale(_this.defaultLocale); }).first().value;
+            if (this.label) {
+                return Manifesto.TranslationCollection.getValue(this.label, this.defaultLocale);
             }
             return null;
         };
-        MetadataItem.prototype.getValue = function () {
+        MetadataItem.prototype.setLabel = function (value) {
             var _this = this;
-            if (this.value.length) {
-                return this.value.en().where(function (x) { return x.locale === _this.defaultLocale || x.locale === Manifesto.Utils.getInexactLocale(_this.defaultLocale); }).first().value;
+            if (this.label && this.label.length) {
+                var t = this.label.en().where(function (x) { return x.locale === _this.defaultLocale || x.locale === Manifesto.Utils.getInexactLocale(_this.defaultLocale); }).first();
+                if (t)
+                    t.value = value;
+            }
+        };
+        MetadataItem.prototype.getValue = function () {
+            if (this.value) {
+                return Manifesto.TranslationCollection.getValue(this.value, this.defaultLocale);
             }
             return null;
+        };
+        MetadataItem.prototype.setValue = function (value) {
+            var _this = this;
+            if (this.value && this.value.length) {
+                var t = this.value.en().where(function (x) { return x.locale === _this.defaultLocale || x.locale === Manifesto.Utils.getInexactLocale(_this.defaultLocale); }).first();
+                if (t)
+                    t.value = value;
+            }
         };
         return MetadataItem;
     }());
     Manifesto.MetadataItem = MetadataItem;
+})(Manifesto || (Manifesto = {}));
+
+var Manifesto;
+(function (Manifesto) {
+    var Translation = (function () {
+        function Translation(value, locale) {
+            this.value = value;
+            this.locale = locale;
+        }
+        return Translation;
+    }());
+    Manifesto.Translation = Translation;
+})(Manifesto || (Manifesto = {}));
+
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var Manifesto;
+(function (Manifesto) {
+    var TranslationCollection = (function (_super) {
+        __extends(TranslationCollection, _super);
+        function TranslationCollection() {
+            _super.apply(this, arguments);
+        }
+        TranslationCollection.parse = function (translation, defaultLocale) {
+            var tc = [];
+            var t;
+            if (_isArray(translation)) {
+                for (var i = 0; i < translation.length; i++) {
+                    var value = translation[i];
+                    if (_isString(value)) {
+                        t = new Manifesto.Translation(value, defaultLocale);
+                    }
+                    else {
+                        t = new Manifesto.Translation(value['@value'], value['@language'] || defaultLocale);
+                    }
+                    tc.push(t);
+                }
+            }
+            else if (_isString(translation)) {
+                // if it's just a single string value, create one translation in the configured locale
+                t = new Manifesto.Translation(translation, defaultLocale);
+                tc.push(t);
+                return tc;
+            }
+            else {
+                // it's an object
+                t = new Manifesto.Translation(translation['@value'], translation['@language'] || defaultLocale);
+                tc.push(t);
+                return tc;
+            }
+            return tc;
+        };
+        TranslationCollection.getValue = function (translationCollection, locale) {
+            if (translationCollection.length) {
+                if (locale) {
+                    var translation = translationCollection.en().where(function (t) { return t.locale === locale || Manifesto.Utils.getInexactLocale(t.locale) === Manifesto.Utils.getInexactLocale(locale); }).first();
+                    if (translation) {
+                        return translation.value;
+                    }
+                }
+                // return the first value
+                return translationCollection[0].value;
+            }
+            return null;
+        };
+        return TranslationCollection;
+    }(Array));
+    Manifesto.TranslationCollection = TranslationCollection;
 })(Manifesto || (Manifesto = {}));
 
 global.manifesto = global.Manifesto = module.exports = {
@@ -2706,6 +2810,8 @@ global.manifesto = global.Manifesto = module.exports = {
     ResourceFormat: new Manifesto.ResourceFormat(),
     ResourceType: new Manifesto.ResourceType(),
     ServiceProfile: new Manifesto.ServiceProfile(),
+    Translation: Manifesto.Translation,
+    TranslationCollection: Manifesto.TranslationCollection,
     TreeNodeType: new Manifesto.TreeNodeType(),
     Utils: Manifesto.Utils,
     ViewingDirection: new Manifesto.ViewingDirection(),
@@ -2834,6 +2940,8 @@ global.manifesto = global.Manifesto = module.exports = {
 /// <reference path="./TreeNodeType.ts" />
 /// <reference path="./Utils.ts" />
 /// <reference path="./MetadataItem.ts" />
+/// <reference path="./Translation.ts" />
+/// <reference path="./TranslationCollection.ts" />
 /// <reference path="./Manifesto.ts" /> 
 
 var __extends = (this && this.__extends) || function (d, b) {
@@ -2948,52 +3056,6 @@ var Manifesto;
         return Resource;
     }(Manifesto.ManifestResource));
     Manifesto.Resource = Resource;
-})(Manifesto || (Manifesto = {}));
-
-var Manifesto;
-(function (Manifesto) {
-    var Translation = (function () {
-        function Translation(value, locale) {
-            this.value = value;
-            this.locale = locale;
-        }
-        return Translation;
-    }());
-    Manifesto.Translation = Translation;
-})(Manifesto || (Manifesto = {}));
-
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-var Manifesto;
-(function (Manifesto) {
-    var TranslationCollection = (function (_super) {
-        __extends(TranslationCollection, _super);
-        function TranslationCollection() {
-            _super.apply(this, arguments);
-        }
-        TranslationCollection.parse = function (translation, defaultLocale) {
-            var tc = [];
-            if (!_isArray(translation)) {
-                // if it's just a single string value, create one translation in the configured locale
-                var t = new Manifesto.Translation(translation, defaultLocale);
-                tc.push(t);
-                return tc;
-            }
-            else {
-                for (var i = 0; i < translation.length; i++) {
-                    var value = translation[i];
-                    var t = new Manifesto.Translation(value['@value'], value['@language']);
-                    tc.push(t);
-                }
-            }
-            return tc;
-        };
-        return TranslationCollection;
-    }(Array));
-    Manifesto.TranslationCollection = TranslationCollection;
 })(Manifesto || (Manifesto = {}));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
@@ -13040,6 +13102,7 @@ var Manifold;
     var Bootstrapper = (function () {
         function Bootstrapper(options) {
             this._options = options;
+            this._options.locale = this._options.locale || 'en-GB'; // default locale
         }
         Bootstrapper.prototype.bootstrap = function () {
             var that = this;
@@ -13076,7 +13139,7 @@ var Manifold;
         };
         Bootstrapper.prototype._loaded = function (bootstrapper, json, resolve, reject) {
             var iiifResource = manifesto.create(json, {
-                locale: bootstrapper._options.locale || 'en-GB'
+                locale: bootstrapper._options.locale
             });
             // only set the root IIIFResource on the first load
             if (!bootstrapper._options.iiifResource) {
@@ -13264,7 +13327,7 @@ var Manifold;
             return service.getService(manifesto.ServiceProfile.autoComplete());
         };
         Helper.prototype.getAttribution = function () {
-            return this.manifest.getAttribution();
+            return Manifesto.TranslationCollection.getValue(this.manifest.getAttribution());
         };
         Helper.prototype.getCanvases = function () {
             return this.getCurrentSequence().getCanvases();
@@ -13371,7 +13434,7 @@ var Manifold;
             }
         };
         Helper.prototype.getLabel = function () {
-            return this.manifest.getLabel();
+            return Manifesto.TranslationCollection.getValue(this.manifest.getLabel());
         };
         Helper.prototype.getLastCanvasLabel = function (alphanumeric) {
             return this.getCurrentSequence().getLastCanvasLabel(alphanumeric);
@@ -13400,21 +13463,17 @@ var Manifold;
             if (manifestMetadata && manifestMetadata.length) {
                 manifestGroup.addMetadata(manifestMetadata, true);
             }
-            if (this.manifest.getDescription()) {
-                var item = {
-                    label: "description",
-                    value: this.manifest.getDescription()
-                };
-                var metadataItem = new Manifold.MetadataItem(item, this.options.locale);
+            if (this.manifest.getDescription().length) {
+                var metadataItem = new Manifesto.MetadataItem(this.options.locale);
+                metadataItem.label = [new Manifesto.Translation("description", this.options.locale)];
+                metadataItem.value = this.manifest.getDescription();
                 metadataItem.isRootLevel = true;
                 manifestGroup.addItem(metadataItem);
             }
-            if (this.manifest.getAttribution()) {
-                var item = {
-                    label: "attribution",
-                    value: this.manifest.getAttribution()
-                };
-                var metadataItem = new Manifold.MetadataItem(item, this.options.locale);
+            if (this.manifest.getAttribution().length) {
+                var metadataItem = new Manifesto.MetadataItem(this.options.locale);
+                metadataItem.label = [new Manifesto.Translation("attribution", this.options.locale)];
+                metadataItem.value = this.manifest.getAttribution();
                 metadataItem.isRootLevel = true;
                 manifestGroup.addItem(metadataItem);
             }
@@ -13423,7 +13482,8 @@ var Manifold;
                     label: "license",
                     value: (options && options.licenseFormatter) ? options.licenseFormatter.format(this.manifest.getLicense()) : this.manifest.getLicense()
                 };
-                var metadataItem = new Manifold.MetadataItem(item, this.options.locale);
+                var metadataItem = new Manifesto.MetadataItem(this.options.locale);
+                metadataItem.parse(item);
                 metadataItem.isRootLevel = true;
                 manifestGroup.addItem(metadataItem);
             }
@@ -13432,7 +13492,8 @@ var Manifold;
                     label: "logo",
                     value: '<img src="' + this.manifest.getLogo() + '"/>'
                 };
-                var metadataItem = new Manifold.MetadataItem(item, this.options.locale);
+                var metadataItem = new Manifesto.MetadataItem(this.options.locale);
+                metadataItem.parse(item);
                 metadataItem.isRootLevel = true;
                 manifestGroup.addItem(metadataItem);
             }
@@ -13910,55 +13971,19 @@ var Manifold;
             this.label = label;
         }
         MetadataGroup.prototype.addItem = function (item) {
-            var metadataItem = this._convertItem(item);
-            this.items.push(metadataItem);
+            this.items.push(item);
         };
         MetadataGroup.prototype.addMetadata = function (metadata, isRootLevel) {
             if (isRootLevel === void 0) { isRootLevel = false; }
             for (var i = 0; i < metadata.length; i++) {
                 var item = metadata[i];
-                var metadataItem = this._convertItem(item);
-                metadataItem.isRootLevel = isRootLevel;
-                this.addItem(metadataItem);
+                item.isRootLevel = isRootLevel;
+                this.addItem(item);
             }
-        };
-        MetadataGroup.prototype._convertItem = function (item) {
-            return new Manifold.MetadataItem(item.resource, item.defaultLocale);
         };
         return MetadataGroup;
     }());
     Manifold.MetadataGroup = MetadataGroup;
-})(Manifold || (Manifold = {}));
-
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-var Manifold;
-(function (Manifold) {
-    var MetadataItem = (function (_super) {
-        __extends(MetadataItem, _super);
-        function MetadataItem(item, defaultLocale) {
-            _super.call(this, item, defaultLocale);
-        }
-        MetadataItem.prototype.setLabel = function (value) {
-            var _this = this;
-            if (this.label.length) {
-                var t = this.label.en().where(function (x) { return x.locale === _this.defaultLocale || x.locale === Manifesto.Utils.getInexactLocale(_this.defaultLocale); }).first();
-                t.value = value;
-            }
-        };
-        MetadataItem.prototype.setValue = function (value) {
-            var _this = this;
-            if (this.value.length) {
-                var t = this.value.en().where(function (x) { return x.locale === _this.defaultLocale || x.locale === Manifesto.Utils.getInexactLocale(_this.defaultLocale); }).first();
-                t.value = value;
-            }
-        };
-        return MetadataItem;
-    }(Manifesto.MetadataItem));
-    Manifold.MetadataItem = MetadataItem;
 })(Manifold || (Manifold = {}));
 
 var Manifold;
@@ -17294,4 +17319,4 @@ var Utils;
     Utils.Urls = Urls;
 })(Utils || (Utils = {}));
 
-!function(f){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=f();else if("function"==typeof define&&define.amd)define([],f);else{var g;g="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof self?self:this,g.iiifMetadataComponent=f()}}(function(){return function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a="function"==typeof require&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}for(var i="function"==typeof require&&require,o=0;o<r.length;o++)s(r[o]);return s}({1:[function(require,module,exports){var IIIFComponents;!function(IIIFComponents){var StringValue=function(){function StringValue(value){this.value="",value&&(this.value=value.toLowerCase())}return StringValue.prototype.toString=function(){return this.value},StringValue}();IIIFComponents.StringValue=StringValue}(IIIFComponents||(IIIFComponents={}));var IIIFComponents,__extends=this&&this.__extends||function(d,b){function __(){this.constructor=d}for(var p in b)b.hasOwnProperty(p)&&(d[p]=b[p]);d.prototype=null===b?Object.create(b):(__.prototype=b.prototype,new __)};!function(IIIFComponents){var MetadataComponentOptions;!function(MetadataComponentOptions){var LimitType=function(_super){function LimitType(){_super.apply(this,arguments)}return __extends(LimitType,_super),LimitType.LINES=new LimitType("lines"),LimitType.CHARS=new LimitType("chars"),LimitType}(IIIFComponents.StringValue);MetadataComponentOptions.LimitType=LimitType}(MetadataComponentOptions=IIIFComponents.MetadataComponentOptions||(IIIFComponents.MetadataComponentOptions={}))}(IIIFComponents||(IIIFComponents={}));var IIIFComponents,__extends=this&&this.__extends||function(d,b){function __(){this.constructor=d}for(var p in b)b.hasOwnProperty(p)&&(d[p]=b[p]);d.prototype=null===b?Object.create(b):(__.prototype=b.prototype,new __)};Manifold.MetadataItem,Manifold.MetadataGroup;!function(IIIFComponents){var MetadataComponent=function(_super){function MetadataComponent(options){_super.call(this,options),this._init(),this._resize()}return __extends(MetadataComponent,_super),MetadataComponent.prototype._init=function(){var success=_super.prototype._init.call(this);return success||console.error("Component failed to initialise"),this._$metadataGroupTemplate=$('<div class="group">                                                   <div class="header"></div>                                                   <div class="items"></div>                                               </div>'),this._$metadataItemTemplate=$('<div class="item">                                                   <div class="label"></div>                                                   <div class="values"></div>                                               </div>'),this._$metadataItemValueTemplate=$('<div class="value"></div>'),this._$copyTextTemplate=$('<div class="copyText" alt="'+this.options.content.copyToClipboard+'" title="'+this.options.content.copyToClipboard+'">                                                   <div class="copiedText">'+this.options.content.copiedToClipboard+" </div>                                               </div>"),this._$metadataGroups=$('<div class="groups"></div>'),this._$element.append(this._$metadataGroups),this._$noData=$('<div class="noData">'+this.options.content.noData+"</div>"),this._$element.append(this._$noData),success},MetadataComponent.prototype._getDefaultOptions=function(){return{aggregateValues:"",canvases:null,canvasDisplayOrder:"",canvasExclude:"",canvasLabels:"",content:{attribution:"Attribution",canvasHeader:"About the canvas",copiedToClipboard:"Copied to clipboard",copyToClipboard:"Copy to clipboard",description:"Description",imageHeader:"About the image",less:"less",license:"License",logo:"Logo",manifestHeader:"About the item",more:"more",noData:"No data to display",rangeHeader:"About the range",sequenceHeader:"About the sequence"},copyToClipboardEnabled:!1,helper:null,licenseFormatter:null,limit:4,limitType:IIIFComponents.MetadataComponentOptions.LimitType.LINES,manifestDisplayOrder:"",manifestExclude:"",range:null,sanitizer:function(html){return html},showAllLanguages:!1}},MetadataComponent.prototype._getManifestGroup=function(){return this._metadataGroups.en().where(function(x){return x.resource.isManifest()}).first()},MetadataComponent.prototype._getCanvasGroups=function(){return this._metadataGroups.en().where(function(x){return x.resource.isCanvas()}).toArray()},MetadataComponent.prototype.databind=function(){var _this=this,options={canvases:this.options.canvases,licenseFormatter:this.options.licenseFormatter,range:this.options.range};if(this._metadataGroups=this.options.helper.getMetadata(options),this.options.manifestDisplayOrder){var manifestGroup=this._getManifestGroup();manifestGroup.items=this._sort(manifestGroup.items,this._readCSV(this.options.manifestDisplayOrder))}if(this.options.canvasDisplayOrder){var canvasGroups=this._getCanvasGroups();$.each(canvasGroups,function(index,canvasGroup){canvasGroup.items=_this._sort(canvasGroup.items,_this._readCSV(_this.options.canvasDisplayOrder))})}if(this.options.canvasLabels&&this._label(this._getCanvasGroups(),this._readCSV(this.options.canvasLabels,!1)),this.options.manifestExclude){var manifestGroup=this._getManifestGroup();manifestGroup.items=this._exclude(manifestGroup.items,this._readCSV(this.options.manifestExclude))}if(this.options.canvasExclude){var canvasGroups=this._getCanvasGroups();$.each(canvasGroups,function(index,canvasGroup){canvasGroup.items=_this._exclude(canvasGroup.items,_this._readCSV(_this.options.canvasExclude))})}return this._metadataGroups.length?(this._$noData.hide(),void this._render()):void this._$noData.show()},MetadataComponent.prototype._sort=function(items,displayOrder){var _this=this,sorted=[],unsorted=items.clone();return $.each(displayOrder,function(index,item){var match=unsorted.en().where(function(x){return _this._normalise(x.getLabel())===item}).first();match&&(sorted.push(match),unsorted.remove(match))}),$.each(unsorted,function(index,item){sorted.push(item)}),sorted},MetadataComponent.prototype._label=function(groups,labels){$.each(groups,function(index,group){group.label=labels[index]})},MetadataComponent.prototype._exclude=function(items,excludeConfig){var _this=this;return $.each(excludeConfig,function(index,item){var match=items.en().where(function(x){return _this._normalise(x.getLabel())===item}).first();match&&items.remove(match)}),items},MetadataComponent.prototype._normalise=function(value){return value.toLowerCase().replace(/ /g,"")},MetadataComponent.prototype._render=function(){var _this=this;$.each(this._metadataGroups,function(index,metadataGroup){var $metadataGroup=_this._buildMetadataGroup(metadataGroup);_this._$metadataGroups.append($metadataGroup),_this.options.limitType===IIIFComponents.MetadataComponentOptions.LimitType.LINES?$metadataGroup.find(".value").toggleExpandTextByLines(_this.options.limit,_this.options.content.less,_this.options.content.more,function(){}):_this.options.limitType===IIIFComponents.MetadataComponentOptions.LimitType.CHARS&&$metadataGroup.find(".value").ellipsisHtmlFixed(_this.options.limit,null)})},MetadataComponent.prototype._buildMetadataGroup=function(metadataGroup){var $metadataGroup=this._$metadataGroupTemplate.clone(),$header=$metadataGroup.find(">.header");if(metadataGroup.resource.isManifest()&&this.options.content.manifestHeader)$header.html(this._sanitize(this.options.content.manifestHeader));else if(metadataGroup.resource.isSequence()&&this.options.content.sequenceHeader)$header.html(this._sanitize(this.options.content.sequenceHeader));else if(metadataGroup.resource.isRange()&&this.options.content.rangeHeader)$header.html(this._sanitize(this.options.content.rangeHeader));else if(metadataGroup.resource.isCanvas()&&(metadataGroup.label||this.options.content.canvasHeader)){var header=metadataGroup.label||this.options.content.canvasHeader;$header.html(this._sanitize(header))}else metadataGroup.resource.isAnnotation()&&this.options.content.imageHeader&&$header.html(this._sanitize(this.options.content.imageHeader));$header.text()||$header.hide();for(var $items=$metadataGroup.find(".items"),i=0;i<metadataGroup.items.length;i++){var item=metadataGroup.items[i],$metadataItem=this._buildMetadataItem(item);$items.append($metadataItem)}return $metadataGroup},MetadataComponent.prototype._buildMetadataItem=function(item){var $metadataItem=this._$metadataItemTemplate.clone(),$label=$metadataItem.find(".label"),$values=$metadataItem.find(".values"),label=item.getLabel();if(item.isRootLevel)switch(label.toLowerCase()){case"attribution":label=this.options.content.attribution;break;case"description":label=this.options.content.description;break;case"license":label=this.options.content.license;break;case"logo":label=this.options.content.logo}label=this._sanitize(label),$label.html(label),$metadataItem.addClass(label.toCssClass());var $value;if(this.options.showAllLanguages&&item.value.length>1)for(var i=0;i<item.value.length;i++){var translation=item.value[i];$value=this._buildMetadataItemValue(translation.value),$values.append($value)}else $value=this._buildMetadataItemValue(item.getValue()),$values.append($value);return $metadataItem},MetadataComponent.prototype._buildMetadataItemValue=function(value){value=this._sanitize(value),value=value.replace("\n","<br>");var $value=this._$metadataItemValueTemplate.clone();return $value.html(value),$value.targetBlank(),$value},MetadataComponent.prototype._addCopyButton=function($elem,$header){var _this=this,$copyBtn=this._$copyTextTemplate.clone(),$copiedText=$copyBtn.children();$header.append($copyBtn),Utils.Device.isTouch()?$copyBtn.show():($elem.on("mouseenter",function(){$copyBtn.show()}),$elem.on("mouseleave",function(){$copyBtn.hide()}),$copyBtn.on("mouseleave",function(){$copiedText.hide()})),$copyBtn.on("click",function(e){var imgElement=e.target,headerText=imgElement.previousSibling.textContent||imgElement.previousSibling.nodeValue;_this._copyValueForLabel(headerText)})},MetadataComponent.prototype._copyValueForLabel=function(label){},MetadataComponent.prototype._readCSV=function(config,normalise){void 0===normalise&&(normalise=!0);var csv=[];if(config&&(csv=config.split(","),normalise))for(var i=0;i<csv.length;i++)csv[i]=this._normalise(csv[i]);return csv},MetadataComponent.prototype._sanitize=function(html){return this.options.sanitizer(html)},MetadataComponent.prototype._resize=function(){},MetadataComponent}(_Components.BaseComponent);IIIFComponents.MetadataComponent=MetadataComponent}(IIIFComponents||(IIIFComponents={}));var IIIFComponents;!function(IIIFComponents){var MetadataComponent;!function(MetadataComponent){var Events=function(){function Events(){}return Events}();MetadataComponent.Events=Events}(MetadataComponent=IIIFComponents.MetadataComponent||(IIIFComponents.MetadataComponent={}))}(IIIFComponents||(IIIFComponents={})),function(w){w.IIIFComponents?(w.IIIFComponents.MetadataComponent=IIIFComponents.MetadataComponent,w.IIIFComponents.MetadataComponentOptions=IIIFComponents.MetadataComponentOptions):w.IIIFComponents=IIIFComponents}(window)},{}]},{},[1])(1)});
+!function(f){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=f();else if("function"==typeof define&&define.amd)define([],f);else{var g;g="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof self?self:this,g.iiifMetadataComponent=f()}}(function(){return function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a="function"==typeof require&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}for(var i="function"==typeof require&&require,o=0;o<r.length;o++)s(r[o]);return s}({1:[function(require,module,exports){var IIIFComponents;!function(IIIFComponents){var StringValue=function(){function StringValue(value){this.value="",value&&(this.value=value.toLowerCase())}return StringValue.prototype.toString=function(){return this.value},StringValue}();IIIFComponents.StringValue=StringValue}(IIIFComponents||(IIIFComponents={}));var IIIFComponents,__extends=this&&this.__extends||function(d,b){function __(){this.constructor=d}for(var p in b)b.hasOwnProperty(p)&&(d[p]=b[p]);d.prototype=null===b?Object.create(b):(__.prototype=b.prototype,new __)};!function(IIIFComponents){var MetadataComponentOptions;!function(MetadataComponentOptions){var LimitType=function(_super){function LimitType(){_super.apply(this,arguments)}return __extends(LimitType,_super),LimitType.LINES=new LimitType("lines"),LimitType.CHARS=new LimitType("chars"),LimitType}(IIIFComponents.StringValue);MetadataComponentOptions.LimitType=LimitType}(MetadataComponentOptions=IIIFComponents.MetadataComponentOptions||(IIIFComponents.MetadataComponentOptions={}))}(IIIFComponents||(IIIFComponents={}));var IIIFComponents,__extends=this&&this.__extends||function(d,b){function __(){this.constructor=d}for(var p in b)b.hasOwnProperty(p)&&(d[p]=b[p]);d.prototype=null===b?Object.create(b):(__.prototype=b.prototype,new __)};Manifold.MetadataGroup;!function(IIIFComponents){var MetadataComponent=function(_super){function MetadataComponent(options){_super.call(this,options),this._init(),this._resize()}return __extends(MetadataComponent,_super),MetadataComponent.prototype._init=function(){var success=_super.prototype._init.call(this);return success||console.error("Component failed to initialise"),this._$metadataGroupTemplate=$('<div class="group">                                                   <div class="header"></div>                                                   <div class="items"></div>                                               </div>'),this._$metadataItemTemplate=$('<div class="item">                                                   <div class="label"></div>                                                   <div class="values"></div>                                               </div>'),this._$metadataItemValueTemplate=$('<div class="value"></div>'),this._$copyTextTemplate=$('<div class="copyText" alt="'+this.options.content.copyToClipboard+'" title="'+this.options.content.copyToClipboard+'">                                                   <div class="copiedText">'+this.options.content.copiedToClipboard+" </div>                                               </div>"),this._$metadataGroups=$('<div class="groups"></div>'),this._$element.append(this._$metadataGroups),this._$noData=$('<div class="noData">'+this.options.content.noData+"</div>"),this._$element.append(this._$noData),success},MetadataComponent.prototype._getDefaultOptions=function(){return{aggregateValues:"",canvases:null,canvasDisplayOrder:"",canvasExclude:"",canvasLabels:"",content:{attribution:"Attribution",canvasHeader:"About the canvas",copiedToClipboard:"Copied to clipboard",copyToClipboard:"Copy to clipboard",description:"Description",imageHeader:"About the image",less:"less",license:"License",logo:"Logo",manifestHeader:"About the item",more:"more",noData:"No data to display",rangeHeader:"About the range",sequenceHeader:"About the sequence"},copyToClipboardEnabled:!1,helper:null,licenseFormatter:null,limit:4,limitType:IIIFComponents.MetadataComponentOptions.LimitType.LINES,manifestDisplayOrder:"",manifestExclude:"",range:null,rtlLanguageCodes:"ar, ara, dv, div, he, heb, ur, urd",sanitizer:function(html){return html},showAllLanguages:!1}},MetadataComponent.prototype._getManifestGroup=function(){return this._metadataGroups.en().where(function(x){return x.resource.isManifest()}).first()},MetadataComponent.prototype._getCanvasGroups=function(){return this._metadataGroups.en().where(function(x){return x.resource.isCanvas()}).toArray()},MetadataComponent.prototype.databind=function(){var _this=this,options={canvases:this.options.canvases,licenseFormatter:this.options.licenseFormatter,range:this.options.range};if(this._metadataGroups=this.options.helper.getMetadata(options),this.options.manifestDisplayOrder){var manifestGroup=this._getManifestGroup();manifestGroup.items=this._sort(manifestGroup.items,this._readCSV(this.options.manifestDisplayOrder))}if(this.options.canvasDisplayOrder){var canvasGroups=this._getCanvasGroups();$.each(canvasGroups,function(index,canvasGroup){canvasGroup.items=_this._sort(canvasGroup.items,_this._readCSV(_this.options.canvasDisplayOrder))})}if(this.options.canvasLabels&&this._label(this._getCanvasGroups(),this._readCSV(this.options.canvasLabels,!1)),this.options.manifestExclude){var manifestGroup=this._getManifestGroup();manifestGroup.items=this._exclude(manifestGroup.items,this._readCSV(this.options.manifestExclude))}if(this.options.canvasExclude){var canvasGroups=this._getCanvasGroups();$.each(canvasGroups,function(index,canvasGroup){canvasGroup.items=_this._exclude(canvasGroup.items,_this._readCSV(_this.options.canvasExclude))})}return this._metadataGroups.length?(this._$noData.hide(),void this._render()):void this._$noData.show()},MetadataComponent.prototype._sort=function(items,displayOrder){var _this=this,sorted=[],unsorted=items.clone();return $.each(displayOrder,function(index,item){var match=unsorted.en().where(function(x){return _this._normalise(x.getLabel())===item}).first();match&&(sorted.push(match),unsorted.remove(match))}),$.each(unsorted,function(index,item){sorted.push(item)}),sorted},MetadataComponent.prototype._label=function(groups,labels){$.each(groups,function(index,group){group.label=labels[index]})},MetadataComponent.prototype._exclude=function(items,excludeConfig){var _this=this;return $.each(excludeConfig,function(index,item){var match=items.en().where(function(x){return _this._normalise(x.getLabel())===item}).first();match&&items.remove(match)}),items},MetadataComponent.prototype._normalise=function(value){return value?value.toLowerCase().replace(/ /g,""):null},MetadataComponent.prototype._render=function(){var _this=this;$.each(this._metadataGroups,function(index,metadataGroup){var $metadataGroup=_this._buildMetadataGroup(metadataGroup);_this._$metadataGroups.append($metadataGroup),_this.options.limitType===IIIFComponents.MetadataComponentOptions.LimitType.LINES?$metadataGroup.find(".value").toggleExpandTextByLines(_this.options.limit,_this.options.content.less,_this.options.content.more,function(){}):_this.options.limitType===IIIFComponents.MetadataComponentOptions.LimitType.CHARS&&$metadataGroup.find(".value").ellipsisHtmlFixed(_this.options.limit,null)})},MetadataComponent.prototype._buildMetadataGroup=function(metadataGroup){var $metadataGroup=this._$metadataGroupTemplate.clone(),$header=$metadataGroup.find(">.header");if(metadataGroup.resource.isManifest()&&this.options.content.manifestHeader)$header.html(this._sanitize(this.options.content.manifestHeader));else if(metadataGroup.resource.isSequence()&&this.options.content.sequenceHeader)$header.html(this._sanitize(this.options.content.sequenceHeader));else if(metadataGroup.resource.isRange()&&this.options.content.rangeHeader)$header.html(this._sanitize(this.options.content.rangeHeader));else if(metadataGroup.resource.isCanvas()&&(metadataGroup.label||this.options.content.canvasHeader)){var header=metadataGroup.label||this.options.content.canvasHeader;$header.html(this._sanitize(header))}else metadataGroup.resource.isAnnotation()&&this.options.content.imageHeader&&$header.html(this._sanitize(this.options.content.imageHeader));$header.text()||$header.hide();for(var $items=$metadataGroup.find(".items"),i=0;i<metadataGroup.items.length;i++){var item=metadataGroup.items[i],$metadataItem=this._buildMetadataItem(item);$items.append($metadataItem)}return $metadataGroup},MetadataComponent.prototype._buildMetadataItem=function(item){var $metadataItem=this._$metadataItemTemplate.clone(),$label=$metadataItem.find(".label"),$values=$metadataItem.find(".values"),label=item.getLabel();if(item.isRootLevel)switch(label.toLowerCase()){case"attribution":label=this.options.content.attribution;break;case"description":label=this.options.content.description;break;case"license":label=this.options.content.license;break;case"logo":label=this.options.content.logo}label=this._sanitize(label),$label.html(label),this._addReadingDirection($label,this._getItemLocale(item)),$metadataItem.addClass(label.toCssClass());var $value;if(this.options.showAllLanguages&&item.value&&item.value.length>1)for(var i=0;i<item.value.length;i++){var translation=item.value[i];$value=this._buildMetadataItemValue(translation.value,translation.locale),$values.append($value)}else $value=this._buildMetadataItemValue(item.getValue(),this._getItemLocale(item)),$values.append($value);return $metadataItem},MetadataComponent.prototype._getItemLocale=function(item){return item.value&&item.value.length?item.value[0].locale:item.defaultLocale||this.options.helper.options.locale},MetadataComponent.prototype._buildMetadataItemValue=function(value,locale){value=this._sanitize(value),value=value.replace("\n","<br>");var $value=this._$metadataItemValueTemplate.clone();return $value.html(value),$value.targetBlank(),locale&&this._addReadingDirection($value,locale),$value},MetadataComponent.prototype._addReadingDirection=function($elem,locale){locale=Manifesto.Utils.getInexactLocale(locale);var rtlLanguages=this._readCSV(this.options.rtlLanguageCodes),match=rtlLanguages.en().where(function(x){return x===locale}).toArray().length>0;match&&($elem.prop("dir","rtl"),$elem.addClass("rtl"))},MetadataComponent.prototype._addCopyButton=function($elem,$header){var _this=this,$copyBtn=this._$copyTextTemplate.clone(),$copiedText=$copyBtn.children();$header.append($copyBtn),Utils.Device.isTouch()?$copyBtn.show():($elem.on("mouseenter",function(){$copyBtn.show()}),$elem.on("mouseleave",function(){$copyBtn.hide()}),$copyBtn.on("mouseleave",function(){$copiedText.hide()})),$copyBtn.on("click",function(e){var imgElement=e.target,headerText=imgElement.previousSibling.textContent||imgElement.previousSibling.nodeValue;_this._copyValueForLabel(headerText)})},MetadataComponent.prototype._copyValueForLabel=function(label){},MetadataComponent.prototype._readCSV=function(config,normalise){void 0===normalise&&(normalise=!0);var csv=[];if(config&&(csv=config.split(","),normalise))for(var i=0;i<csv.length;i++)csv[i]=this._normalise(csv[i]);return csv},MetadataComponent.prototype._sanitize=function(html){return this.options.sanitizer(html)},MetadataComponent.prototype._resize=function(){},MetadataComponent}(_Components.BaseComponent);IIIFComponents.MetadataComponent=MetadataComponent}(IIIFComponents||(IIIFComponents={}));var IIIFComponents;!function(IIIFComponents){var MetadataComponent;!function(MetadataComponent){var Events=function(){function Events(){}return Events}();MetadataComponent.Events=Events}(MetadataComponent=IIIFComponents.MetadataComponent||(IIIFComponents.MetadataComponent={}))}(IIIFComponents||(IIIFComponents={})),function(w){w.IIIFComponents?(w.IIIFComponents.MetadataComponent=IIIFComponents.MetadataComponent,w.IIIFComponents.MetadataComponentOptions=IIIFComponents.MetadataComponentOptions):w.IIIFComponents=IIIFComponents}(window)},{}]},{},[1])(1)});

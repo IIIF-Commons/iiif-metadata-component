@@ -32,7 +32,8 @@ namespace IIIFComponents{
         manifestDisplayOrder: string;                   // csv of items to override display order
         manifestExclude: string;                        // csv of items to exclude from manifest metadata display
         range: Manifesto.IRange;                        // which range to include
+        rtlLanguageCodes: string;                       // csv of right-to-left language codes
         sanitizer: (html: string) => string;            // see example for how to pass in a sanitizer
-        showAllLanguages: boolean;
+        showAllLanguages: boolean;                      // display all translations
     }
 }

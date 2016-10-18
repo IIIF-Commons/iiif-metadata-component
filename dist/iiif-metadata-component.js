@@ -51,7 +51,6 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var MetadataItem = Manifold.MetadataItem;
 var MetadataGroup = Manifold.MetadataGroup;
 var IIIFComponents;
 (function (IIIFComponents) {
@@ -116,6 +115,7 @@ var IIIFComponents;
                 manifestDisplayOrder: "",
                 manifestExclude: "",
                 range: null,
+                rtlLanguageCodes: "ar, ara, dv, div, he, heb, ur, urd",
                 sanitizer: function (html) { return html; },
                 showAllLanguages: false
             };
@@ -227,7 +227,10 @@ var IIIFComponents;
         //     }
         // }
         MetadataComponent.prototype._normalise = function (value) {
-            return value.toLowerCase().replace(/ /g, "");
+            if (value) {
+                return value.toLowerCase().replace(/ /g, "");
+            }
+            return null;
         };
         MetadataComponent.prototype._render = function () {
             var _this = this;
@@ -296,18 +299,20 @@ var IIIFComponents;
             }
             label = this._sanitize(label);
             $label.html(label);
+            // rtl?
+            this._addReadingDirection($label, this._getItemLocale(item));
             $metadataItem.addClass(label.toCssClass());
             var value;
             var $value;
-            if (this.options.showAllLanguages && item.value.length > 1) {
+            if (this.options.showAllLanguages && item.value && item.value.length > 1) {
                 for (var i = 0; i < item.value.length; i++) {
                     var translation = item.value[i];
-                    $value = this._buildMetadataItemValue(translation.value);
+                    $value = this._buildMetadataItemValue(translation.value, translation.locale);
                     $values.append($value);
                 }
             }
             else {
-                $value = this._buildMetadataItemValue(item.getValue());
+                $value = this._buildMetadataItemValue(item.getValue(), this._getItemLocale(item));
                 $values.append($value);
             }
             // if (this.options.copyToClipboardEnabled && Utils.Clipboard.supportsCopy() && $value.text() && $label.text()){
@@ -315,13 +320,34 @@ var IIIFComponents;
             // }
             return $metadataItem;
         };
-        MetadataComponent.prototype._buildMetadataItemValue = function (value) {
+        MetadataComponent.prototype._getItemLocale = function (item) {
+            if (item.value && item.value.length) {
+                return item.value[0].locale;
+            }
+            else {
+                return item.defaultLocale || this.options.helper.options.locale;
+            }
+        };
+        MetadataComponent.prototype._buildMetadataItemValue = function (value, locale) {
             value = this._sanitize(value);
             value = value.replace('\n', '<br>'); // replace \n with <br>
             var $value = this._$metadataItemValueTemplate.clone();
             $value.html(value);
             $value.targetBlank();
+            // rtl?
+            if (locale) {
+                this._addReadingDirection($value, locale);
+            }
             return $value;
+        };
+        MetadataComponent.prototype._addReadingDirection = function ($elem, locale) {
+            locale = Manifesto.Utils.getInexactLocale(locale);
+            var rtlLanguages = this._readCSV(this.options.rtlLanguageCodes);
+            var match = rtlLanguages.en().where(function (x) { return x === locale; }).toArray().length > 0;
+            if (match) {
+                $elem.prop('dir', 'rtl');
+                $elem.addClass('rtl');
+            }
         };
         MetadataComponent.prototype._addCopyButton = function ($elem, $header) {
             var _this = this;
