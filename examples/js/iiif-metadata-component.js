@@ -129,6 +129,7 @@ var IIIFComponents;
         };
         MetadataComponent.prototype.databind = function () {
             var _this = this;
+            this._$metadataGroups.empty();
             var options = {
                 canvases: this.options.canvases,
                 licenseFormatter: this.options.licenseFormatter,

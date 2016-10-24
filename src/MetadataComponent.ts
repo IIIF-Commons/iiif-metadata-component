@@ -12,8 +12,6 @@ namespace IIIFComponents {
         private _$metadataItemTemplate: JQuery;
         private _$metadataItemValueTemplate: JQuery;
         private _$noData: JQuery;
-        //private _aggregateValues: string[];
-        //private _canvasExclude: string[];
         private _metadataGroups: MetadataGroup[];
 
         constructor(options: IMetadataComponentOptions) {
@@ -102,6 +100,8 @@ namespace IIIFComponents {
         }
 
         public databind(): void {
+
+            this._$metadataGroups.empty();
 
             var options: Manifold.MetadataOptions = <Manifold.MetadataOptions>{
                 canvases: this.options.canvases,
