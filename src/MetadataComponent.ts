@@ -295,7 +295,7 @@ namespace IIIFComponents {
 
             var label: string = item.getLabel();
 
-            if (item.isRootLevel) {
+            if (label && item.isRootLevel) {
                 switch (label.toLowerCase()) {
                     case "attribution":
                         label = this.options.content.attribution;

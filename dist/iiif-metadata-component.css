@@ -2,14 +2,8 @@ body {
   font-family: Sans-Serif;
   padding: 20px;
 }
-.iiif-metadata-component .noData {
-  padding: 0 10px 20px 10px;
-}
 .iiif-metadata-component .groups .group .header {
   font-weight: bold;
-}
-.iiif-metadata-component .groups .group .items {
-  padding: 0 10px 20px 10px;
 }
 .iiif-metadata-component .groups .group .items .header {
   color: #14a4c3;

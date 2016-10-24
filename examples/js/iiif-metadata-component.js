@@ -283,7 +283,7 @@ var IIIFComponents;
             var $label = $metadataItem.find('.label');
             var $values = $metadataItem.find('.values');
             var label = item.getLabel();
-            if (item.isRootLevel) {
+            if (label && item.isRootLevel) {
                 switch (label.toLowerCase()) {
                     case "attribution":
                         label = this.options.content.attribution;
