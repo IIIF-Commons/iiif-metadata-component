@@ -78,6 +78,7 @@ namespace IIIFComponents {
                     rangeHeader: "About the range",
                     sequenceHeader: "About the sequence"
                 },
+                copiedMessageDuration: 2000,
                 copyToClipboardEnabled: false,
                 helper: null,
                 licenseFormatter: null,
@@ -333,9 +334,9 @@ namespace IIIFComponents {
                 $values.append($value);
             }
 
-            // if (this.options.copyToClipboardEnabled && Utils.Clipboard.supportsCopy() && $value.text() && $label.text()){
-            //     this._addCopyButton($metadataItem, $label);
-            // }
+            if (this.options.copyToClipboardEnabled && Utils.Clipboard.supportsCopy() && $value.text() && $label.text()){
+                this._addCopyButton($metadataItem, $label);
+            }
 
             return $metadataItem;
         }
@@ -393,30 +394,33 @@ namespace IIIFComponents {
                 });
             }
 
-            $copyBtn.on('click', (e) => {
-                var imgElement = e.target as HTMLElement;
-                var headerText = imgElement.previousSibling.textContent || imgElement.previousSibling.nodeValue;
-                this._copyValueForLabel(headerText);
+            var that = this;
+
+            $copyBtn.on('click', function(e) {
+                var $this = $(this);
+                var $item: JQuery = $this.closest('.item');
+                that._copyItemValues($this, $item);
             });
         }
         
-        private _copyValueForLabel(label: string) {
-            // var manifestItems: MetadataItem[] = this._flatten(this._metadataGroups);
-            // var $matchingItems = $(manifestItems.concat(canvasItems))
-            //     .filter(function (i, md: any) { return md.label && label && md.label.toLowerCase() === label.toLowerCase(); });
+        private _copyItemValues($copyButton: JQuery, $item: JQuery) {
 
-            // var text = $matchingItems.map(function (i, md: any) { return md.value; }).get().join('');
+            var $values: JQuery = $item.find('.value');
+            var values: string = "";
 
-            // if (!text) return;
+            for (var i = 0; i < $values.length; i++) {
+                var value: string = $($values[i]).text();
+                values.length ? values += '\n' + value : values += value;
+            }
 
-            // Utils.Clipboard.copy(text);
+            Utils.Clipboard.copy(values);
 
-            // var $copiedText = $('.items .item .header:contains(' + label + ') .copiedText');
-            // $copiedText.show();
+            var $copiedText = $copyButton.find('.copiedText');
+            $copiedText.show();
 
-            // setTimeout(function() {
-            //     $copiedText.hide();
-            // }, 2000);
+            setTimeout(() => {
+                $copiedText.hide();
+            }, this.options.copiedMessageDuration);
         }
         
         private _readCSV(config: string, normalise: boolean = true): string[] {

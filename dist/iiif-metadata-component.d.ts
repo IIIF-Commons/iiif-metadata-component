@@ -45,6 +45,7 @@ declare namespace IIIFComponents {
         canvasExclude: string;
         canvasLabels: string;
         content: IContent;
+        copiedMessageDuration: number;
         copyToClipboardEnabled: boolean;
         helper: Manifold.IHelper;
         licenseFormatter: Manifold.UriLabeller;
@@ -88,7 +89,7 @@ declare namespace IIIFComponents {
         private _buildMetadataItemValue(value, locale);
         private _addReadingDirection($elem, locale);
         private _addCopyButton($elem, $header);
-        private _copyValueForLabel(label);
+        private _copyItemValues($copyButton, $item);
         private _readCSV(config, normalise?);
         private _sanitize(html);
         protected _resize(): void;

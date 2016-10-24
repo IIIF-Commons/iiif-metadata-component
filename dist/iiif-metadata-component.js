@@ -107,6 +107,7 @@ var IIIFComponents;
                     rangeHeader: "About the range",
                     sequenceHeader: "About the sequence"
                 },
+                copiedMessageDuration: 2000,
                 copyToClipboardEnabled: false,
                 helper: null,
                 licenseFormatter: null,
@@ -315,9 +316,9 @@ var IIIFComponents;
                 $value = this._buildMetadataItemValue(item.getValue(), this._getItemLocale(item));
                 $values.append($value);
             }
-            // if (this.options.copyToClipboardEnabled && Utils.Clipboard.supportsCopy() && $value.text() && $label.text()){
-            //     this._addCopyButton($metadataItem, $label);
-            // }
+            if (this.options.copyToClipboardEnabled && Utils.Clipboard.supportsCopy() && $value.text() && $label.text()) {
+                this._addCopyButton($metadataItem, $label);
+            }
             return $metadataItem;
         };
         MetadataComponent.prototype._getItemLocale = function (item) {
@@ -350,7 +351,6 @@ var IIIFComponents;
             }
         };
         MetadataComponent.prototype._addCopyButton = function ($elem, $header) {
-            var _this = this;
             var $copyBtn = this._$copyTextTemplate.clone();
             var $copiedText = $copyBtn.children();
             $header.append($copyBtn);
@@ -368,24 +368,26 @@ var IIIFComponents;
                     $copiedText.hide();
                 });
             }
+            var that = this;
             $copyBtn.on('click', function (e) {
-                var imgElement = e.target;
-                var headerText = imgElement.previousSibling.textContent || imgElement.previousSibling.nodeValue;
-                _this._copyValueForLabel(headerText);
+                var $this = $(this);
+                var $item = $this.closest('.item');
+                that._copyItemValues($this, $item);
             });
         };
-        MetadataComponent.prototype._copyValueForLabel = function (label) {
-            // var manifestItems: MetadataItem[] = this._flatten(this._metadataGroups);
-            // var $matchingItems = $(manifestItems.concat(canvasItems))
-            //     .filter(function (i, md: any) { return md.label && label && md.label.toLowerCase() === label.toLowerCase(); });
-            // var text = $matchingItems.map(function (i, md: any) { return md.value; }).get().join('');
-            // if (!text) return;
-            // Utils.Clipboard.copy(text);
-            // var $copiedText = $('.items .item .header:contains(' + label + ') .copiedText');
-            // $copiedText.show();
-            // setTimeout(function() {
-            //     $copiedText.hide();
-            // }, 2000);
+        MetadataComponent.prototype._copyItemValues = function ($copyButton, $item) {
+            var $values = $item.find('.value');
+            var values = "";
+            for (var i = 0; i < $values.length; i++) {
+                var value = $($values[i]).text();
+                values.length ? values += '\n' + value : values += value;
+            }
+            Utils.Clipboard.copy(values);
+            var $copiedText = $copyButton.find('.copiedText');
+            $copiedText.show();
+            setTimeout(function () {
+                $copiedText.hide();
+            }, this.options.copiedMessageDuration);
         };
         MetadataComponent.prototype._readCSV = function (config, normalise) {
             if (normalise === void 0) { normalise = true; }

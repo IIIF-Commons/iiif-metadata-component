@@ -24,6 +24,7 @@ namespace IIIFComponents{
         canvasExclude: string;                          // csv of items to exclude from canvas metadata display
         canvasLabels: string;                           // csv of labels to use for canvas groups
         content: IContent;
+        copiedMessageDuration: number;                  // the duration in ms that the copied text message appears for
         copyToClipboardEnabled: boolean;
         helper: Manifold.IHelper;
         licenseFormatter: Manifold.UriLabeller;
