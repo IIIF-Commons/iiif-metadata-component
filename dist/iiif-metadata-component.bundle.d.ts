@@ -66,7 +66,7 @@ interface JQuery {
     verticalMargins(): number;
     verticalPadding(): number;
 }
-// manifesto.js v0.2.4 https://github.com/viewdir/manifesto
+// manifesto.js v1.0.0 https://github.com/viewdir/manifesto
 declare module exjs {
     var version: string;
 }
