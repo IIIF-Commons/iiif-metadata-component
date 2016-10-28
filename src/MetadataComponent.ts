@@ -324,29 +324,46 @@ namespace IIIFComponents {
             var $value: JQuery;
 
             if (this.options.showAllLanguages && item.value && item.value.length > 1) {
+                // display all values in each locale
                 for (var i = 0; i < item.value.length; i++) {
                     var translation: Manifesto.Translation = item.value[i];
                     $value = this._buildMetadataItemValue(translation.value, translation.locale);
                     $values.append($value);
                 }
             } else {
-                $value = this._buildMetadataItemValue(item.getValue(), this._getItemLocale(item));
-                $values.append($value);
+
+                var itemLocale: string = this._getItemLocale(item);
+                var valueFound: boolean = false;
+
+                // display all values in the item's locale
+                for (var i = 0; i < item.value.length; i++) {
+                    var translation: Manifesto.Translation = item.value[i];
+
+                    if (itemLocale === translation.locale) {
+                        valueFound = true;
+                        $value = this._buildMetadataItemValue(translation.value, translation.locale);
+                        $values.append($value);
+                    }
+                }
+
+                // if no values were found in the current locale, default to the first.
+                if (!valueFound) {
+                    var translation: Manifesto.Translation = item.value[0];
+                    $value = this._buildMetadataItemValue(translation.value, translation.locale);
+                    $values.append($value);
+                }
             }
 
-            if (this.options.copyToClipboardEnabled && Utils.Clipboard.supportsCopy() && $value.text() && $label.text()){
+            if (this.options.copyToClipboardEnabled && Utils.Clipboard.supportsCopy() && $label.text()){
                 this._addCopyButton($metadataItem, $label);
             }
 
             return $metadataItem;
         }
-        
+
         private _getItemLocale(item: MetadataItem): string {
-            if (item.value && item.value.length) {
-                return item.value[0].locale;
-            } else {
-                return item.defaultLocale || this.options.helper.options.locale;
-            }
+            // the item's label locale takes precedence
+            return (item.label.length && item.label[0].locale) ? item.label[0].locale : item.defaultLocale || this.options.helper.options.locale;
         }
 
         private _buildMetadataItemValue(value: string, locale: string): JQuery {
