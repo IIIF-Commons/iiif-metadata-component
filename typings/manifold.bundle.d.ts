@@ -1,7 +1,4 @@
-// manifesto.js v2.0.0 https://github.com/viewdir/manifesto
-declare module exjs {
-    var version: string;
-}
+// manifesto.js v2.0.3 https://github.com/viewdir/manifesto
 declare module exjs {
 }
 declare module exjs {
@@ -173,14 +170,6 @@ declare module exjs {
         zip<TSecond, TResult>(second: IEnumerable<TSecond>, resultSelector: (f: T, s: TSecond) => TResult): IEnumerableEx<TResult>;
         zip<TSecond, TResult>(second: TSecond[], resultSelector: (f: T, s: TSecond) => TResult): IEnumerableEx<TResult>;
     }
-}
-declare var Symbol: any;
-interface Iterator<T> {
-    next(): IteratorResult<T>;
-}
-interface IteratorResult<T> {
-    done: boolean;
-    value: T;
 }
 declare module exjs {
 }
@@ -1316,6 +1305,7 @@ declare namespace Manifold {
         dataUri: string;
         error: any;
         height: number;
+        index: number;
         isResponseHandled: boolean;
         loginService: Manifesto.IService;
         logoutService: Manifesto.IService;
