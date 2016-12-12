@@ -31,9 +31,12 @@
             // https://iiif.riksarkivet.se/arkis!F0001185/manifest (merge source reference)
             // https://edsilv.github.io/test-manifests/all-metadata.json (all metadata)
             // http://tomcrane.github.io/scratch/manifests/vdc_100000004987.0x000001.json (rtl)
+            // http://bluemountain.princeton.edu/exist/restxq/iiif/collection/top
 
             Manifold.loadManifest({
-                iiifResourceUri: 'http://tomcrane.github.io/scratch/manifests/vdc_100000004987.0x000001.json'
+                iiifResourceUri: 'http://tomcrane.github.io/scratch/manifests/vdc_100000004987.0x000001.json',
+                collectionIndex: 0,
+                manifestIndex: 0
             }).then(function(h){
                 
                 helper = h;
@@ -75,8 +78,8 @@
 
                 component.databind();
 
-            }).catch(function() {
-                console.error('failed to load manifest');
+            }).catch(function(e) {
+                console.error(e);
             });
         });
 
