@@ -349,8 +349,12 @@ namespace IIIFComponents {
                 // if no values were found in the current locale, default to the first.
                 if (!valueFound) {
                     var translation: Manifesto.Translation = item.value[0];
-                    $value = this._buildMetadataItemValue(translation.value, translation.locale);
-                    $values.append($value);
+
+                    if (translation) {
+                        $value = this._buildMetadataItemValue(translation.value, translation.locale);
+                        $values.append($value);
+                    }
+
                 }
             }
 
