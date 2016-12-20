@@ -359,7 +359,7 @@ namespace IIIFComponents {
             }
 
             if (this.options.copyToClipboardEnabled && Utils.Clipboard.supportsCopy() && $label.text()){
-                this._addCopyButton($metadataItem, $label);
+                this._addCopyButton($metadataItem, $label, $values);
             }
 
             return $metadataItem;
@@ -396,7 +396,7 @@ namespace IIIFComponents {
             }
         }
 
-        private _addCopyButton($elem: JQuery, $header: JQuery): void {
+        private _addCopyButton($elem: JQuery, $header: JQuery, $values: JQuery): void {
             var $copyBtn = this._$copyTextTemplate.clone();
             var $copiedText = $copyBtn.children();
             $header.append($copyBtn);
@@ -416,25 +416,15 @@ namespace IIIFComponents {
             }
 
             var that = this;
+            var originalValue = $values.text();
 
             $copyBtn.on('click', function(e) {
-                var $this = $(this);
-                var $item: JQuery = $this.closest('.item');
-                that._copyItemValues($this, $item);
+                that._copyItemValues($copyBtn, originalValue);
             });
         }
         
-        private _copyItemValues($copyButton: JQuery, $item: JQuery) {
-
-            var $values: JQuery = $item.find('.value');
-            var values: string = "";
-
-            for (var i = 0; i < $values.length; i++) {
-                var value: string = $($values[i]).text();
-                values.length ? values += '\n' + value : values += value;
-            }
-
-            Utils.Clipboard.copy(values);
+        private _copyItemValues($copyButton: JQuery, originalValue: string) {
+            Utils.Clipboard.copy(originalValue);
 
             var $copiedText = $copyButton.find('.copiedText');
             $copiedText.show();

@@ -11668,8 +11668,8 @@ declare namespace IIIFComponents {
         private _getItemLocale(item);
         private _buildMetadataItemValue(value, locale);
         private _addReadingDirection($elem, locale);
-        private _addCopyButton($elem, $header);
-        private _copyItemValues($copyButton, $item);
+        private _addCopyButton($elem, $header, $values);
+        private _copyItemValues($copyButton, originalValue);
         private _readCSV(config, normalise?);
         private _sanitize(html);
         protected _resize(): void;
