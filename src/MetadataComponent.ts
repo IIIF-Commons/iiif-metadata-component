@@ -41,7 +41,7 @@ namespace IIIFComponents {
             
             this._$metadataItemValueTemplate = $('<div class="value"></div>');
 
-            this._$metadataItemURIValueTemplate = $('<a href="" target="_blank"></a>');
+            this._$metadataItemURIValueTemplate = $('<a class="value" href="" target="_blank"></a>');
 
             this._$copyTextTemplate =       $('<div class="copyText" alt="' + this.options.content.copyToClipboard  + '" title="' + this.options.content.copyToClipboard + '">\
                                                    <div class="copiedText">' + this.options.content.copiedToClipboard + ' </div>\
