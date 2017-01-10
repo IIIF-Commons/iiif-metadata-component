@@ -417,8 +417,8 @@ namespace IIIFComponents {
         }
 
         private _addCopyButton($elem: JQuery, $header: JQuery, $values: JQuery): void {
-            var $copyBtn = this._$copyTextTemplate.clone();
-            var $copiedText = $copyBtn.children();
+            const $copyBtn = this._$copyTextTemplate.clone();
+            const $copiedText = $copyBtn.children();
             $header.append($copyBtn);
 
             if (Utils.Device.isTouch()) {
