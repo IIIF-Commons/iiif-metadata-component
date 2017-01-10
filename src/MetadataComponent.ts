@@ -11,6 +11,7 @@ namespace IIIFComponents {
         private _$metadataGroupTemplate: JQuery;
         private _$metadataItemTemplate: JQuery;
         private _$metadataItemValueTemplate: JQuery;
+        private _$metadataItemURIValueTemplate: JQuery;
         private _$noData: JQuery;
         private _metadataGroups: MetadataGroup[];
 
@@ -39,6 +40,8 @@ namespace IIIFComponents {
                                                </div>');
             
             this._$metadataItemValueTemplate = $('<div class="value"></div>');
+
+            this._$metadataItemURIValueTemplate = $('<a href="" target="_blank"></a>');
 
             this._$copyTextTemplate =       $('<div class="copyText" alt="' + this.options.content.copyToClipboard  + '" title="' + this.options.content.copyToClipboard + '">\
                                                    <div class="copiedText">' + this.options.content.copiedToClipboard + ' </div>\
@@ -323,40 +326,48 @@ namespace IIIFComponents {
             var value: string;
             var $value: JQuery;
 
-            if (this.options.showAllLanguages && item.value && item.value.length > 1) {
-                // display all values in each locale
-                for (var i = 0; i < item.value.length; i++) {
-                    var translation: Manifesto.Translation = item.value[i];
-                    $value = this._buildMetadataItemValue(translation.value, translation.locale);
-                    $values.append($value);
-                }
+            // if the value is a URI
+            if (label.toLowerCase() === "license") {
+                $value = this._buildMetadataItemURIValue(item.value[0].value);
+                $values.append($value);
             } else {
 
-                var itemLocale: string = this._getItemLocale(item);
-                var valueFound: boolean = false;
-
-                // display all values in the item's locale
-                for (var i = 0; i < item.value.length; i++) {
-                    var translation: Manifesto.Translation = item.value[i];
-
-                    if (itemLocale === translation.locale) {
-                        valueFound = true;
+                if (this.options.showAllLanguages && item.value && item.value.length > 1) {
+                    // display all values in each locale
+                    for (var i = 0; i < item.value.length; i++) {
+                        var translation: Manifesto.Translation = item.value[i];
                         $value = this._buildMetadataItemValue(translation.value, translation.locale);
                         $values.append($value);
                     }
-                }
+                } else {
 
-                // if no values were found in the current locale, default to the first.
-                if (!valueFound) {
-                    var translation: Manifesto.Translation = item.value[0];
+                    var itemLocale: string = this._getItemLocale(item);
+                    var valueFound: boolean = false;
 
-                    if (translation) {
-                        $value = this._buildMetadataItemValue(translation.value, translation.locale);
-                        $values.append($value);
+                    // display all values in the item's locale
+                    for (var i = 0; i < item.value.length; i++) {
+                        var translation: Manifesto.Translation = item.value[i];
+
+                        if (itemLocale === translation.locale) {
+                            valueFound = true;
+                            $value = this._buildMetadataItemValue(translation.value, translation.locale);
+                            $values.append($value);
+                        }
                     }
 
+                    // if no values were found in the current locale, default to the first.
+                    if (!valueFound) {
+                        var translation: Manifesto.Translation = item.value[0];
+
+                        if (translation) {
+                            $value = this._buildMetadataItemValue(translation.value, translation.locale);
+                            $values.append($value);
+                        }
+
+                    }
                 }
             }
+
 
             if (this.options.copyToClipboardEnabled && Utils.Clipboard.supportsCopy() && $label.text()){
                 this._addCopyButton($metadataItem, $label);
@@ -382,6 +393,14 @@ namespace IIIFComponents {
                 this._addReadingDirection($value, locale);
             }
 
+            return $value;
+        }
+
+        private _buildMetadataItemURIValue(value: string): JQuery {
+            value = this._sanitize(value);
+            var $value: JQuery = this._$metadataItemURIValueTemplate.clone();
+            $value.prop('href', value);
+            $value.text(value);
             return $value;
         }
 

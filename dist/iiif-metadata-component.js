@@ -75,6 +75,7 @@ var IIIFComponents;
                                                    <div class="values"></div>\
                                                </div>');
             this._$metadataItemValueTemplate = $('<div class="value"></div>');
+            this._$metadataItemURIValueTemplate = $('<a href="" target="_blank"></a>');
             this._$copyTextTemplate = $('<div class="copyText" alt="' + this.options.content.copyToClipboard + '" title="' + this.options.content.copyToClipboard + '">\
                                                    <div class="copiedText">' + this.options.content.copiedToClipboard + ' </div>\
                                                </div>');
@@ -306,32 +307,39 @@ var IIIFComponents;
             $metadataItem.addClass(label.toCssClass());
             var value;
             var $value;
-            if (this.options.showAllLanguages && item.value && item.value.length > 1) {
-                // display all values in each locale
-                for (var i = 0; i < item.value.length; i++) {
-                    var translation = item.value[i];
-                    $value = this._buildMetadataItemValue(translation.value, translation.locale);
-                    $values.append($value);
-                }
+            // if the value is a URI
+            if (label.toLowerCase() === "license") {
+                $value = this._buildMetadataItemURIValue(item.value[0].value);
+                $values.append($value);
             }
             else {
-                var itemLocale = this._getItemLocale(item);
-                var valueFound = false;
-                // display all values in the item's locale
-                for (var i = 0; i < item.value.length; i++) {
-                    var translation = item.value[i];
-                    if (itemLocale === translation.locale) {
-                        valueFound = true;
+                if (this.options.showAllLanguages && item.value && item.value.length > 1) {
+                    // display all values in each locale
+                    for (var i = 0; i < item.value.length; i++) {
+                        var translation = item.value[i];
                         $value = this._buildMetadataItemValue(translation.value, translation.locale);
                         $values.append($value);
                     }
                 }
-                // if no values were found in the current locale, default to the first.
-                if (!valueFound) {
-                    var translation = item.value[0];
-                    if (translation) {
-                        $value = this._buildMetadataItemValue(translation.value, translation.locale);
-                        $values.append($value);
+                else {
+                    var itemLocale = this._getItemLocale(item);
+                    var valueFound = false;
+                    // display all values in the item's locale
+                    for (var i = 0; i < item.value.length; i++) {
+                        var translation = item.value[i];
+                        if (itemLocale === translation.locale) {
+                            valueFound = true;
+                            $value = this._buildMetadataItemValue(translation.value, translation.locale);
+                            $values.append($value);
+                        }
+                    }
+                    // if no values were found in the current locale, default to the first.
+                    if (!valueFound) {
+                        var translation = item.value[0];
+                        if (translation) {
+                            $value = this._buildMetadataItemValue(translation.value, translation.locale);
+                            $values.append($value);
+                        }
                     }
                 }
             }
@@ -354,6 +362,13 @@ var IIIFComponents;
             if (locale) {
                 this._addReadingDirection($value, locale);
             }
+            return $value;
+        };
+        MetadataComponent.prototype._buildMetadataItemURIValue = function (value) {
+            value = this._sanitize(value);
+            var $value = this._$metadataItemURIValueTemplate.clone();
+            $value.prop('href', value);
+            $value.text(value);
             return $value;
         };
         MetadataComponent.prototype._addReadingDirection = function ($elem, locale) {

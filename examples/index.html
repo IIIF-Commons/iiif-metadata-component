@@ -34,7 +34,7 @@
             // http://bluemountain.princeton.edu/exist/restxq/iiif/collection/top
 
             Manifold.loadManifest({
-                iiifResourceUri: 'http://iiif.bodleian.ox.ac.uk/iiif/manifest/60834383-7146-41ab-bfe1-48ee97bc04be.json',
+                iiifResourceUri: 'http://wellcomelibrary.org/iiif/b18035978/manifest',
                 collectionIndex: 0,
                 manifestIndex: 0
             }).then(function(h){
@@ -45,13 +45,13 @@
                     canvasDisplayOrder: "attribution, title",
                     canvases: [helper.getCanvasByIndex(0), helper.getCanvasByIndex(1)],
                     canvasLabels: "Left page, Right page",
-                    canvasExclude: "attribution",
+                    //canvasExclude: "attribution",
                     copyToClipboardEnabled: true,
                     element: "#metadata",
                     helper: h,
                     limitType: IIIFComponents.MetadataComponentOptions.LimitType.LINES,
-                    manifestDisplayOrder: "attribution, publication date, license, title",
-                    manifestExclude: "license, attribution",
+                    //manifestDisplayOrder: "attribution, publication date, license, title",
+                    //manifestExclude: "license, attribution",
                     range: helper.getRanges()[0],
                     sanitizer: function(html) {
                         var elem = document.createElement('div');

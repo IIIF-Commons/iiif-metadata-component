@@ -11650,6 +11650,7 @@ declare namespace IIIFComponents {
         private _$metadataGroupTemplate;
         private _$metadataItemTemplate;
         private _$metadataItemValueTemplate;
+        private _$metadataItemURIValueTemplate;
         private _$noData;
         private _metadataGroups;
         constructor(options: IMetadataComponentOptions);
@@ -11667,6 +11668,7 @@ declare namespace IIIFComponents {
         private _buildMetadataItem(item);
         private _getItemLocale(item);
         private _buildMetadataItemValue(value, locale);
+        private _buildMetadataItemURIValue(value);
         private _addReadingDirection($elem, locale);
         private _addCopyButton($elem, $header);
         private _copyItemValues($copyButton, $item);
