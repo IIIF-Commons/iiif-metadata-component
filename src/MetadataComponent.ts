@@ -23,7 +23,7 @@ namespace IIIFComponents {
         }
 
         protected _init(): boolean {
-            var success: boolean = super._init();
+            const success: boolean = super._init();
 
             if (!success){
                 console.error("Component failed to initialise");
@@ -106,7 +106,7 @@ namespace IIIFComponents {
 
             this._$metadataGroups.empty();
 
-            var options: Manifold.MetadataOptions = <Manifold.MetadataOptions>{
+            const options: Manifold.MetadataOptions = <Manifold.MetadataOptions>{
                 canvases: this.options.canvases,
                 licenseFormatter: this.options.licenseFormatter,
                 range: this.options.range
@@ -115,12 +115,12 @@ namespace IIIFComponents {
             this._metadataGroups = this.options.helper.getMetadata(options);
 
             if (this.options.manifestDisplayOrder) {
-                var manifestGroup: MetadataGroup = this._getManifestGroup();
+                const manifestGroup: MetadataGroup = this._getManifestGroup();
                 manifestGroup.items = this._sort(manifestGroup.items, this._readCSV(this.options.manifestDisplayOrder));
             }
 
             if (this.options.canvasDisplayOrder) {
-                var canvasGroups: MetadataGroup[] = this._getCanvasGroups();
+                const canvasGroups: MetadataGroup[] = this._getCanvasGroups();
 
                 $.each(canvasGroups, (index: number, canvasGroup: MetadataGroup) => {
                     canvasGroup.items = this._sort(canvasGroup.items, this._readCSV(this.options.canvasDisplayOrder));
@@ -132,12 +132,12 @@ namespace IIIFComponents {
             }
             
             if (this.options.manifestExclude) {
-                var manifestGroup: MetadataGroup = this._getManifestGroup();
+                const manifestGroup: MetadataGroup = this._getManifestGroup();
                 manifestGroup.items = this._exclude(manifestGroup.items, this._readCSV(this.options.manifestExclude));
             }
 
             if (this.options.canvasExclude) {
-                var canvasGroups: MetadataGroup[] = this._getCanvasGroups();
+                const canvasGroups: MetadataGroup[] = this._getCanvasGroups();
 
                 $.each(canvasGroups, (index: number, canvasGroup: MetadataGroup) => {
                     canvasGroup.items = this._exclude(canvasGroup.items, this._readCSV(this.options.canvasExclude));
@@ -156,11 +156,11 @@ namespace IIIFComponents {
 
         private _sort(items: MetadataItem[], displayOrder: string[]): MetadataItem[] {
 
-            var sorted: MetadataItem[] = [];
-            var unsorted: MetadataItem[] = items.clone();
+            let sorted: MetadataItem[] = [];
+            let unsorted: MetadataItem[] = items.clone();
 
             $.each(displayOrder, (index: number, item: string) => {
-                var match: MetadataItem = unsorted.en().where((x => this._normalise(x.getLabel()) === item)).first();
+                const match: MetadataItem = unsorted.en().where((x => this._normalise(x.getLabel()) === item)).first();
                 if (match){
                     sorted.push(match);
                     unsorted.remove(match);
@@ -185,7 +185,7 @@ namespace IIIFComponents {
         private _exclude(items: MetadataItem[], excludeConfig: string[]): MetadataItem[] {
 
             $.each(excludeConfig, (index: number, item: string) => {
-                var match: MetadataItem = items.en().where((x => this._normalise(x.getLabel()) === item)).first();
+                const match: MetadataItem = items.en().where((x => this._normalise(x.getLabel()) === item)).first();
                 if (match) {
                     items.remove(match);
                 }
@@ -247,7 +247,7 @@ namespace IIIFComponents {
         private _render(): void {
 
             $.each(this._metadataGroups, (index: number, metadataGroup: MetadataGroup) => {
-                var $metadataGroup: JQuery = this._buildMetadataGroup(metadataGroup);
+                const $metadataGroup: JQuery = this._buildMetadataGroup(metadataGroup);
                 this._$metadataGroups.append($metadataGroup);
 
                 if (this.options.limitType === MetadataComponentOptions.LimitType.LINES) {
@@ -259,8 +259,8 @@ namespace IIIFComponents {
         }
 
         private _buildMetadataGroup(metadataGroup: MetadataGroup): JQuery {
-            var $metadataGroup: JQuery = this._$metadataGroupTemplate.clone();
-            var $header: JQuery = $metadataGroup.find('>.header');
+            const $metadataGroup: JQuery = this._$metadataGroupTemplate.clone();
+            const $header: JQuery = $metadataGroup.find('>.header');
 
             // add group header
             if (metadataGroup.resource.isManifest() && this.options.content.manifestHeader) {
@@ -270,7 +270,7 @@ namespace IIIFComponents {
             } else if (metadataGroup.resource.isRange() && this.options.content.rangeHeader) {
                 $header.html(this._sanitize(this.options.content.rangeHeader));
             } else if (metadataGroup.resource.isCanvas() && (metadataGroup.label || this.options.content.canvasHeader)) {
-                var header: string = metadataGroup.label || this.options.content.canvasHeader;
+                const header: string = metadataGroup.label || this.options.content.canvasHeader;
                 $header.html(this._sanitize(header));
             } else if (metadataGroup.resource.isAnnotation() && this.options.content.imageHeader) {
                 $header.html(this._sanitize(this.options.content.imageHeader));
@@ -280,11 +280,11 @@ namespace IIIFComponents {
                 $header.hide();
             }
 
-            var $items: JQuery = $metadataGroup.find('.items');
+            const $items: JQuery = $metadataGroup.find('.items');
 
-            for (var i = 0; i < metadataGroup.items.length; i++) {
-                var item: MetadataItem = metadataGroup.items[i];
-                var $metadataItem: JQuery = this._buildMetadataItem(item);
+            for (let i = 0; i < metadataGroup.items.length; i++) {
+                const item: MetadataItem = metadataGroup.items[i];
+                const $metadataItem: JQuery = this._buildMetadataItem(item);
                 $items.append($metadataItem);
             }
 
@@ -292,11 +292,12 @@ namespace IIIFComponents {
         }
 
         private _buildMetadataItem(item: MetadataItem): JQuery {
-            var $metadataItem: JQuery = this._$metadataItemTemplate.clone();
-            var $label: JQuery = $metadataItem.find('.label');
-            var $values: JQuery = $metadataItem.find('.values');
+            const $metadataItem: JQuery = this._$metadataItemTemplate.clone();
+            const $label: JQuery = $metadataItem.find('.label');
+            const $values: JQuery = $metadataItem.find('.values');
 
-            var label: string = item.getLabel();
+            const originalLabel: string = item.getLabel();
+            let label = originalLabel;
 
             if (label && item.isRootLevel) {
                 switch (label.toLowerCase()) {
@@ -323,30 +324,30 @@ namespace IIIFComponents {
 
             $metadataItem.addClass(label.toCssClass());
 
-            var value: string;
-            var $value: JQuery;
+            let value: string;
+            let $value: JQuery;
 
             // if the value is a URI
-            if (label.toLowerCase() === "license") {
+            if (originalLabel && originalLabel.toLowerCase() === "license") {
                 $value = this._buildMetadataItemURIValue(item.value[0].value);
                 $values.append($value);
             } else {
 
                 if (this.options.showAllLanguages && item.value && item.value.length > 1) {
                     // display all values in each locale
-                    for (var i = 0; i < item.value.length; i++) {
-                        var translation: Manifesto.Translation = item.value[i];
+                    for (let i = 0; i < item.value.length; i++) {
+                        const translation: Manifesto.Translation = item.value[i];
                         $value = this._buildMetadataItemValue(translation.value, translation.locale);
                         $values.append($value);
                     }
                 } else {
 
-                    var itemLocale: string = this._getItemLocale(item);
-                    var valueFound: boolean = false;
+                    const itemLocale: string = this._getItemLocale(item);
+                    let valueFound: boolean = false;
 
                     // display all values in the item's locale
-                    for (var i = 0; i < item.value.length; i++) {
-                        var translation: Manifesto.Translation = item.value[i];
+                    for (let i = 0; i < item.value.length; i++) {
+                        const translation: Manifesto.Translation = item.value[i];
 
                         if (itemLocale === translation.locale) {
                             valueFound = true;
@@ -357,7 +358,7 @@ namespace IIIFComponents {
 
                     // if no values were found in the current locale, default to the first.
                     if (!valueFound) {
-                        var translation: Manifesto.Translation = item.value[0];
+                        const translation: Manifesto.Translation = item.value[0];
 
                         if (translation) {
                             $value = this._buildMetadataItemValue(translation.value, translation.locale);
@@ -384,7 +385,7 @@ namespace IIIFComponents {
         private _buildMetadataItemValue(value: string, locale: string): JQuery {
             value = this._sanitize(value);
             value = value.replace('\n', '<br>'); // replace \n with <br>
-            var $value: JQuery = this._$metadataItemValueTemplate.clone();
+            const $value: JQuery = this._$metadataItemValueTemplate.clone();
             $value.html(value);
             $value.targetBlank();
 
@@ -398,7 +399,7 @@ namespace IIIFComponents {
 
         private _buildMetadataItemURIValue(value: string): JQuery {
             value = this._sanitize(value);
-            var $value: JQuery = this._$metadataItemURIValueTemplate.clone();
+            const $value: JQuery = this._$metadataItemURIValueTemplate.clone();
             $value.prop('href', value);
             $value.text(value);
             return $value;
@@ -406,8 +407,8 @@ namespace IIIFComponents {
 
         private _addReadingDirection($elem: JQuery, locale: string) {
             locale = Manifesto.Utils.getInexactLocale(locale);
-            var rtlLanguages: string[] = this._readCSV(this.options.rtlLanguageCodes);
-            var match: boolean = rtlLanguages.en().where(x => x === locale).toArray().length > 0;
+            const rtlLanguages: string[] = this._readCSV(this.options.rtlLanguageCodes);
+            const match: boolean = rtlLanguages.en().where(x => x === locale).toArray().length > 0;
 
             if (match) {
                 $elem.prop('dir', 'rtl');
@@ -416,8 +417,8 @@ namespace IIIFComponents {
         }
 
         private _addCopyButton($elem: JQuery, $header: JQuery): void {
-            var $copyBtn = this._$copyTextTemplate.clone();
-            var $copiedText = $copyBtn.children();
+            const $copyBtn = this._$copyTextTemplate.clone();
+            const $copiedText = $copyBtn.children();
             $header.append($copyBtn);
 
             if (Utils.Device.isTouch()) {
@@ -434,28 +435,28 @@ namespace IIIFComponents {
                 });
             }
 
-            var that = this;
+            const that = this;
 
             $copyBtn.on('click', function(e) {
-                var $this = $(this);
-                var $item: JQuery = $this.closest('.item');
+                const $this = $(this);
+                const $item: JQuery = $this.closest('.item');
                 that._copyItemValues($this, $item);
             });
         }
         
         private _copyItemValues($copyButton: JQuery, $item: JQuery) {
 
-            var $values: JQuery = $item.find('.value');
-            var values: string = "";
+            const $values: JQuery = $item.find('.value');
+            let values: string = "";
 
-            for (var i = 0; i < $values.length; i++) {
-                var value: string = $($values[i]).text();
+            for (let i = 0; i < $values.length; i++) {
+                const value: string = $($values[i]).text();
                 values.length ? values += '\n' + value : values += value;
             }
 
             Utils.Clipboard.copy(values);
 
-            var $copiedText = $copyButton.find('.copiedText');
+            const $copiedText = $copyButton.find('.copiedText');
             $copiedText.show();
 
             setTimeout(() => {
@@ -464,14 +465,14 @@ namespace IIIFComponents {
         }
         
         private _readCSV(config: string, normalise: boolean = true): string[] {
-            var csv: string[] = [];
+            let csv: string[] = [];
             
             if (config) {
 
                 csv = config.split(',');
 
                 if (normalise) {
-                    for (var i = 0; i < csv.length; i++) {
+                    for (let i = 0; i < csv.length; i++) {
                         csv[i] = this._normalise(csv[i]);
                     }
                 }
