@@ -43,7 +43,6 @@ body {
   color: #000;
 }
 .iiif-metadata-component .groups .group .items .item .value {
-  display: block;
   color: #000;
   margin: 5px 10px 0 0;
   overflow: hidden;
@@ -63,4 +62,8 @@ body {
 }
 .iiif-metadata-component .groups .group .items .item .value img {
   max-width: 100px;
+}
+.iiif-metadata-component .groups .group .items .item a.value {
+  display: block;
+  color: #26b5cc;
 }
