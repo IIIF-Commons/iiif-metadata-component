@@ -345,7 +345,7 @@ var IIIFComponents;
                 }
             }
             if (this.options.copyToClipboardEnabled && Utils.Clipboard.supportsCopy() && $label.text()) {
-                this._addCopyButton($metadataItem, $label);
+                this._addCopyButton($metadataItem, $label, $values);
             }
             return $metadataItem;
         };
@@ -381,7 +381,7 @@ var IIIFComponents;
                 $elem.addClass('rtl');
             }
         };
-        MetadataComponent.prototype._addCopyButton = function ($elem, $header) {
+        MetadataComponent.prototype._addCopyButton = function ($elem, $header, $values) {
             var $copyBtn = this._$copyTextTemplate.clone();
             var $copiedText = $copyBtn.children();
             $header.append($copyBtn);
@@ -400,20 +400,13 @@ var IIIFComponents;
                 });
             }
             var that = this;
+            var originalValue = $values.text();
             $copyBtn.on('click', function (e) {
-                var $this = $(this);
-                var $item = $this.closest('.item');
-                that._copyItemValues($this, $item);
+                that._copyItemValues($copyBtn, originalValue);
             });
         };
-        MetadataComponent.prototype._copyItemValues = function ($copyButton, $item) {
-            var $values = $item.find('.value');
-            var values = "";
-            for (var i = 0; i < $values.length; i++) {
-                var value = $($values[i]).text();
-                values.length ? values += '\n' + value : values += value;
-            }
-            Utils.Clipboard.copy(values);
+        MetadataComponent.prototype._copyItemValues = function ($copyButton, originalValue) {
+            Utils.Clipboard.copy(originalValue);
             var $copiedText = $copyButton.find('.copiedText');
             $copiedText.show();
             setTimeout(function () {
