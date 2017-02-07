@@ -42,41 +42,43 @@
                 helper = h;
                 
                 component = new IIIFComponents.MetadataComponent({
-                    canvasDisplayOrder: "attribution, title",
-                    canvases: [helper.getCanvasByIndex(0), helper.getCanvasByIndex(1)],
-                    canvasLabels: "Left page, Right page",
-                    //canvasExclude: "attribution",
-                    copyToClipboardEnabled: true,
-                    element: "#metadata",
-                    helper: h,
-                    limitType: IIIFComponents.MetadataComponentOptions.LimitType.LINES,
-                    //manifestDisplayOrder: "attribution, publication date, license, title",
-                    //manifestExclude: "license, attribution",
-                    range: helper.getRanges()[0],
-                    sanitizer: function(html) {
-                        var elem = document.createElement('div');
-                        var $elem = $(elem);
-                        $elem.html(html);
+                    target: document.querySelector('#metadata'),
+                    data: {
+                        canvasDisplayOrder: "attribution, title",
+                        canvases: [helper.getCanvasByIndex(0), helper.getCanvasByIndex(1)],
+                        canvasLabels: "Left page, Right page",
+                        //canvasExclude: "attribution",
+                        copyToClipboardEnabled: true,
+                        helper: h,
+                        limitType: IIIFComponents.MetadataComponentOptions.LimitType.LINES,
+                        //manifestDisplayOrder: "attribution, publication date, license, title",
+                        //manifestExclude: "license, attribution",
+                        range: helper.getRanges()[0],
+                        sanitizer: function(html) {
+                            var elem = document.createElement('div');
+                            var $elem = $(elem);
+                            $elem.html(html);
 
-                        var s = new Sanitize({
-                            elements:   ['a', 'b', 'br', 'img', 'p', 'i', 'span'],
-                            attributes: {
-                                a: ['href'],
-                                img: ['src', 'alt']
-                            },
-                            protocols:  {
-                                a: { href: ['http', 'https'] }
-                            }
-                        });
+                            var s = new Sanitize({
+                                elements:   ['a', 'b', 'br', 'img', 'p', 'i', 'span'],
+                                attributes: {
+                                    a: ['href'],
+                                    img: ['src', 'alt']
+                                },
+                                protocols:  {
+                                    a: { href: ['http', 'https'] }
+                                }
+                            });
 
-                        $elem.html(s.clean_node(elem));
+                            $elem.html(s.clean_node(elem));
 
-                        return $elem.html();
-                    },
-                    showAllLanguages: false
+                            return $elem.html();
+                        },
+                        showAllLanguages: false
+                    }
                 });
 
-                component.databind();
+                component.set();
 
             }).catch(function(e) {
                 console.error(e);

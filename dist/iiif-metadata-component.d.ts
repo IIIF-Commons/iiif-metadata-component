@@ -1,16 +1,10 @@
 // iiif-metadata-component v1.0.10 https://github.com/viewdir/iiif-metadata-component#readme
+
 declare namespace IIIFComponents {
     class StringValue {
         value: string;
         constructor(value?: string);
         toString(): string;
-    }
-}
-
-declare namespace IIIFComponents.MetadataComponentOptions {
-    class LimitType extends StringValue {
-        static LINES: LimitType;
-        static CHARS: LimitType;
     }
 }
 
@@ -23,7 +17,7 @@ declare namespace IIIFComponents {
 }
 
 declare namespace IIIFComponents {
-    interface IContent {
+    interface IMetadataComponentContent {
         attribution: string;
         canvasHeader: string;
         copiedToClipboard: string;
@@ -39,32 +33,40 @@ declare namespace IIIFComponents {
         rangeHeader: string;
         sequenceHeader: string;
     }
-    interface IMetadataComponentOptions extends _Components.IBaseComponentOptions {
+    interface IMetadataComponentData {
         canvasDisplayOrder: string;
-        canvases: Manifesto.ICanvas[];
+        canvases: Manifesto.ICanvas[] | null;
         canvasExclude: string;
         canvasLabels: string;
-        content: IContent;
+        content: IMetadataComponentContent;
         copiedMessageDuration: number;
         copyToClipboardEnabled: boolean;
-        helper: Manifold.IHelper;
-        licenseFormatter: Manifold.UriLabeller;
+        helper: Manifold.IHelper | null;
+        licenseFormatter: Manifold.UriLabeller | null;
         limit: number;
         limitType: MetadataComponentOptions.LimitType;
         manifestDisplayOrder: string;
         manifestExclude: string;
-        range: Manifesto.IRange;
+        range: Manifesto.IRange | null;
         rtlLanguageCodes: string;
         sanitizer: (html: string) => string;
         showAllLanguages: boolean;
     }
 }
 
+declare namespace IIIFComponents.MetadataComponentOptions {
+    class LimitType extends StringValue {
+        static LINES: LimitType;
+        static CHARS: LimitType;
+    }
+}
+
 import MetadataItem = Manifold.IMetadataItem;
 import MetadataGroup = Manifold.MetadataGroup;
+declare type csvvalue = string | null;
 declare namespace IIIFComponents {
     class MetadataComponent extends _Components.BaseComponent implements IMetadataComponent {
-        options: IMetadataComponentOptions;
+        options: _Components.IBaseComponentOptions;
         private _$copyTextTemplate;
         private _$metadataGroups;
         private _$metadataGroupTemplate;
@@ -73,12 +75,12 @@ declare namespace IIIFComponents {
         private _$metadataItemURIValueTemplate;
         private _$noData;
         private _metadataGroups;
-        constructor(options: IMetadataComponentOptions);
+        constructor(options: _Components.IBaseComponentOptions);
         protected _init(): boolean;
-        protected _getDefaultOptions(): IMetadataComponentOptions;
+        data(): IMetadataComponentData;
         private _getManifestGroup();
         private _getCanvasGroups();
-        databind(): void;
+        set(): void;
         private _sort(items, displayOrder);
         private _label(groups, labels);
         private _exclude(items, excludeConfig);

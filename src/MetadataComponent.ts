@@ -1,10 +1,12 @@
 import MetadataItem = Manifold.IMetadataItem;
 import MetadataGroup = Manifold.MetadataGroup;
 
+type csvvalue = string | null;
+
 namespace IIIFComponents {
     export class MetadataComponent extends _Components.BaseComponent implements IMetadataComponent{
 
-        public options: IMetadataComponentOptions;
+        public options: _Components.IBaseComponentOptions;
 
         private _$copyTextTemplate: JQuery;
         private _$metadataGroups: JQuery;
@@ -15,7 +17,7 @@ namespace IIIFComponents {
         private _$noData: JQuery;
         private _metadataGroups: MetadataGroup[];
 
-        constructor(options: IMetadataComponentOptions) {
+        constructor(options: _Components.IBaseComponentOptions) {
             super(options);
             
             this._init();
@@ -43,27 +45,27 @@ namespace IIIFComponents {
 
             this._$metadataItemURIValueTemplate = $('<a class="value" href="" target="_blank"></a>');
 
-            this._$copyTextTemplate =       $('<div class="copyText" alt="' + this.options.content.copyToClipboard  + '" title="' + this.options.content.copyToClipboard + '">\
-                                                   <div class="copiedText">' + this.options.content.copiedToClipboard + ' </div>\
+            this._$copyTextTemplate =       $('<div class="copyText" alt="' + this.options.data.content.copyToClipboard  + '" title="' + this.options.data.content.copyToClipboard + '">\
+                                                   <div class="copiedText">' + this.options.data.content.copiedToClipboard + ' </div>\
                                                </div>');
 
             this._$metadataGroups = $('<div class="groups"></div>');
             this._$element.append(this._$metadataGroups);
 
-            this._$noData = $('<div class="noData">' + this.options.content.noData + '</div>');
+            this._$noData = $('<div class="noData">' + this.options.data.content.noData + '</div>');
             this._$element.append(this._$noData);
 
             return success;
         }
         
-        protected _getDefaultOptions(): IMetadataComponentOptions {
-            return <IMetadataComponentOptions>{
+        public data(): IMetadataComponentData {
+            return <IMetadataComponentData>{
                 aggregateValues: "",
                 canvases: null,
                 canvasDisplayOrder: "",
                 canvasExclude: "",
                 canvasLabels: "",
-                content: <IContent>{
+                content: <IMetadataComponentContent>{
                     attribution: "Attribution",
                     canvasHeader: "About the canvas",
                     copiedToClipboard: "Copied to clipboard",
@@ -102,45 +104,45 @@ namespace IIIFComponents {
             return this._metadataGroups.en().where(x => x.resource.isCanvas()).toArray();
         }
 
-        public databind(): void {
+        public set(): void {
 
             this._$metadataGroups.empty();
 
             const options: Manifold.MetadataOptions = <Manifold.MetadataOptions>{
-                canvases: this.options.canvases,
-                licenseFormatter: this.options.licenseFormatter,
-                range: this.options.range
+                canvases: this.options.data.canvases,
+                licenseFormatter: this.options.data.licenseFormatter,
+                range: this.options.data.range
             }
 
-            this._metadataGroups = this.options.helper.getMetadata(options);
+            this._metadataGroups = this.options.data.helper.getMetadata(options);
 
-            if (this.options.manifestDisplayOrder) {
+            if (this.options.data.manifestDisplayOrder) {
                 const manifestGroup: MetadataGroup = this._getManifestGroup();
-                manifestGroup.items = this._sort(manifestGroup.items, this._readCSV(this.options.manifestDisplayOrder));
+                manifestGroup.items = this._sort(manifestGroup.items, this._readCSV(this.options.data.manifestDisplayOrder));
             }
 
-            if (this.options.canvasDisplayOrder) {
+            if (this.options.data.canvasDisplayOrder) {
                 const canvasGroups: MetadataGroup[] = this._getCanvasGroups();
 
                 $.each(canvasGroups, (index: number, canvasGroup: MetadataGroup) => {
-                    canvasGroup.items = this._sort(canvasGroup.items, this._readCSV(this.options.canvasDisplayOrder));
+                    canvasGroup.items = this._sort(canvasGroup.items, this._readCSV(this.options.data.canvasDisplayOrder));
                 });
             }
 
-            if (this.options.canvasLabels) {
-                this._label(this._getCanvasGroups(), this._readCSV(this.options.canvasLabels, false));
+            if (this.options.data.canvasLabels) {
+                this._label(this._getCanvasGroups(), this._readCSV(this.options.data.canvasLabels, false));
             }
             
-            if (this.options.manifestExclude) {
+            if (this.options.data.manifestExclude) {
                 const manifestGroup: MetadataGroup = this._getManifestGroup();
-                manifestGroup.items = this._exclude(manifestGroup.items, this._readCSV(this.options.manifestExclude));
+                manifestGroup.items = this._exclude(manifestGroup.items, this._readCSV(this.options.data.manifestExclude));
             }
 
-            if (this.options.canvasExclude) {
+            if (this.options.data.canvasExclude) {
                 const canvasGroups: MetadataGroup[] = this._getCanvasGroups();
 
                 $.each(canvasGroups, (index: number, canvasGroup: MetadataGroup) => {
-                    canvasGroup.items = this._exclude(canvasGroup.items, this._readCSV(this.options.canvasExclude));
+                    canvasGroup.items = this._exclude(canvasGroup.items, this._readCSV(this.options.data.canvasExclude));
                 });
             }
 
@@ -154,7 +156,7 @@ namespace IIIFComponents {
             this._render();
         }
 
-        private _sort(items: MetadataItem[], displayOrder: string[]): MetadataItem[] {
+        private _sort(items: MetadataItem[], displayOrder: csvvalue[]): MetadataItem[] {
 
             let sorted: MetadataItem[] = [];
             let unsorted: MetadataItem[] = items.clone();
@@ -175,14 +177,14 @@ namespace IIIFComponents {
             return sorted;
         }
 
-        private _label(groups: MetadataGroup[], labels: string[]): void {
+        private _label(groups: MetadataGroup[], labels: csvvalue[]): void {
 
             $.each(groups, (index: number, group: MetadataGroup) => {
-                group.label = labels[index];
+                group.label = <string>labels[index];
             });
         }
 
-        private _exclude(items: MetadataItem[], excludeConfig: string[]): MetadataItem[] {
+        private _exclude(items: MetadataItem[], excludeConfig: csvvalue[]): MetadataItem[] {
 
             $.each(excludeConfig, (index: number, item: string) => {
                 const match: MetadataItem = items.en().where((x => this._normalise(x.getLabel()) === item)).first();
@@ -236,7 +238,7 @@ namespace IIIFComponents {
         //     }
         // }
 
-        private _normalise(value: string): string {
+        private _normalise(value: string | null): string | null {
             if (value) {
                 return value.toLowerCase().replace(/ /g, "");
             }
@@ -250,10 +252,10 @@ namespace IIIFComponents {
                 const $metadataGroup: JQuery = this._buildMetadataGroup(metadataGroup);
                 this._$metadataGroups.append($metadataGroup);
 
-                if (this.options.limitType === MetadataComponentOptions.LimitType.LINES) {
-                    $metadataGroup.find('.value').toggleExpandTextByLines(this.options.limit, this.options.content.less, this.options.content.more, () => {});
-                } else if (this.options.limitType === MetadataComponentOptions.LimitType.CHARS) {
-                    $metadataGroup.find('.value').ellipsisHtmlFixed(this.options.limit, null);
+                if (this.options.data.limitType === MetadataComponentOptions.LimitType.LINES) {
+                    $metadataGroup.find('.value').toggleExpandTextByLines(this.options.data.limit, this.options.data.content.less, this.options.data.content.more, () => {});
+                } else if (this.options.data.limitType === MetadataComponentOptions.LimitType.CHARS) {
+                    $metadataGroup.find('.value').ellipsisHtmlFixed(this.options.data.limit, () => {});
                 }
             });
         }
@@ -263,17 +265,17 @@ namespace IIIFComponents {
             const $header: JQuery = $metadataGroup.find('>.header');
 
             // add group header
-            if (metadataGroup.resource.isManifest() && this.options.content.manifestHeader) {
-                $header.html(this._sanitize(this.options.content.manifestHeader));
-            } else if (metadataGroup.resource.isSequence() && this.options.content.sequenceHeader) {
-                $header.html(this._sanitize(this.options.content.sequenceHeader));
-            } else if (metadataGroup.resource.isRange() && this.options.content.rangeHeader) {
-                $header.html(this._sanitize(this.options.content.rangeHeader));
-            } else if (metadataGroup.resource.isCanvas() && (metadataGroup.label || this.options.content.canvasHeader)) {
-                const header: string = metadataGroup.label || this.options.content.canvasHeader;
+            if (metadataGroup.resource.isManifest() && this.options.data.content.manifestHeader) {
+                $header.html(this._sanitize(this.options.data.content.manifestHeader));
+            } else if (metadataGroup.resource.isSequence() && this.options.data.content.sequenceHeader) {
+                $header.html(this._sanitize(this.options.data.content.sequenceHeader));
+            } else if (metadataGroup.resource.isRange() && this.options.data.content.rangeHeader) {
+                $header.html(this._sanitize(this.options.data.content.rangeHeader));
+            } else if (metadataGroup.resource.isCanvas() && (metadataGroup.label || this.options.data.content.canvasHeader)) {
+                const header: string = metadataGroup.label || this.options.data.content.canvasHeader;
                 $header.html(this._sanitize(header));
-            } else if (metadataGroup.resource.isAnnotation() && this.options.content.imageHeader) {
-                $header.html(this._sanitize(this.options.content.imageHeader));
+            } else if (metadataGroup.resource.isAnnotation() && this.options.data.content.imageHeader) {
+                $header.html(this._sanitize(this.options.data.content.imageHeader));
             }
 
             if (!$header.text()) {
@@ -302,16 +304,16 @@ namespace IIIFComponents {
             if (label && item.isRootLevel) {
                 switch (label.toLowerCase()) {
                     case "attribution":
-                        label = this.options.content.attribution;
+                        label = this.options.data.content.attribution;
                         break;
                     case "description":
-                        label = this.options.content.description;
+                        label = this.options.data.content.description;
                         break;
                     case "license":
-                        label = this.options.content.license;
+                        label = this.options.data.content.license;
                         break;
                     case "logo":
-                        label = this.options.content.logo;
+                        label = this.options.data.content.logo;
                         break;
                 }
             }
@@ -324,7 +326,6 @@ namespace IIIFComponents {
 
             $metadataItem.addClass(label.toCssClass());
 
-            let value: string;
             let $value: JQuery;
 
             // if the value is a URI
@@ -333,7 +334,7 @@ namespace IIIFComponents {
                 $values.append($value);
             } else {
 
-                if (this.options.showAllLanguages && item.value && item.value.length > 1) {
+                if (this.options.data.showAllLanguages && item.value && item.value.length > 1) {
                     // display all values in each locale
                     for (let i = 0; i < item.value.length; i++) {
                         const translation: Manifesto.Translation = item.value[i];
@@ -370,7 +371,7 @@ namespace IIIFComponents {
             }
 
 
-            if (this.options.copyToClipboardEnabled && Utils.Clipboard.supportsCopy() && $label.text()){
+            if (this.options.data.copyToClipboardEnabled && Utils.Clipboard.supportsCopy() && $label.text()){
                 this._addCopyButton($metadataItem, $label, $values);
             }
 
@@ -379,7 +380,7 @@ namespace IIIFComponents {
 
         private _getItemLocale(item: MetadataItem): string {
             // the item's label locale takes precedence
-            return (item.label.length && item.label[0].locale) ? item.label[0].locale : item.defaultLocale || this.options.helper.options.locale;
+            return (item.label.length && item.label[0].locale) ? item.label[0].locale : item.defaultLocale || this.options.data.helper.options.locale;
         }
 
         private _buildMetadataItemValue(value: string, locale: string): JQuery {
@@ -407,7 +408,7 @@ namespace IIIFComponents {
 
         private _addReadingDirection($elem: JQuery, locale: string) {
             locale = Manifesto.Utils.getInexactLocale(locale);
-            const rtlLanguages: string[] = this._readCSV(this.options.rtlLanguageCodes);
+            const rtlLanguages: csvvalue[] = this._readCSV(this.options.data.rtlLanguageCodes);
             const match: boolean = rtlLanguages.en().where(x => x === locale).toArray().length > 0;
 
             if (match) {
@@ -443,7 +444,7 @@ namespace IIIFComponents {
                 that._copyItemValues($copyBtn, originalValue);
             });
         }
-                
+
         private _copyItemValues($copyButton: JQuery, originalValue: string) {
             Utils.Clipboard.copy(originalValue);
 
@@ -452,11 +453,11 @@ namespace IIIFComponents {
 
             setTimeout(() => {
                 $copiedText.hide();
-            }, this.options.copiedMessageDuration);
+            }, this.options.data.copiedMessageDuration);
         }
         
-        private _readCSV(config: string, normalise: boolean = true): string[] {
-            let csv: string[] = [];
+        private _readCSV(config: string, normalise: boolean = true): csvvalue[] {
+            let csv: csvvalue[] = [];
             
             if (config) {
 
@@ -474,7 +475,7 @@ namespace IIIFComponents {
         }
         
         private _sanitize(html: string) {
-            return this.options.sanitizer(html);
+            return this.options.data.sanitizer(html);
         }
 
         protected _resize(): void {
@@ -489,11 +490,11 @@ namespace IIIFComponents.MetadataComponent {
     }
 }
 
-(function(w) {
-    if (!w.IIIFComponents){
-        w.IIIFComponents = IIIFComponents;
+(function(g: any) {
+    if (!g.IIIFComponents){
+        g.IIIFComponents = IIIFComponents;
     } else {
-        w.IIIFComponents.MetadataComponent = IIIFComponents.MetadataComponent;
-        w.IIIFComponents.MetadataComponentOptions = IIIFComponents.MetadataComponentOptions;
+        g.IIIFComponents.MetadataComponent = IIIFComponents.MetadataComponent;
+        g.IIIFComponents.MetadataComponentOptions = IIIFComponents.MetadataComponentOptions;
     }
-})(window);
+})(global);

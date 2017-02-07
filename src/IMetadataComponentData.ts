@@ -1,6 +1,6 @@
 namespace IIIFComponents{
     
-    export interface IContent {
+    export interface IMetadataComponentContent {
         attribution: string;
         canvasHeader: string;
         copiedToClipboard: string;
@@ -17,22 +17,22 @@ namespace IIIFComponents{
         sequenceHeader: string;
     }
     
-    export interface IMetadataComponentOptions extends _Components.IBaseComponentOptions {
+    export interface IMetadataComponentData {
         //aggregateValues: string;                        // csv of metadata items to merge into a single item
         canvasDisplayOrder: string;                     // csv of items to override display order
-        canvases: Manifesto.ICanvas[];                  // which canvases to include
+        canvases: Manifesto.ICanvas[] | null;           // which canvases to include
         canvasExclude: string;                          // csv of items to exclude from canvas metadata display
         canvasLabels: string;                           // csv of labels to use for canvas groups
-        content: IContent;
+        content: IMetadataComponentContent;
         copiedMessageDuration: number;                  // the duration in ms that the copied text message appears for
         copyToClipboardEnabled: boolean;
-        helper: Manifold.IHelper;
-        licenseFormatter: Manifold.UriLabeller;
+        helper: Manifold.IHelper | null;
+        licenseFormatter: Manifold.UriLabeller | null;
         limit: number;
         limitType: MetadataComponentOptions.LimitType;
         manifestDisplayOrder: string;                   // csv of items to override display order
         manifestExclude: string;                        // csv of items to exclude from manifest metadata display
-        range: Manifesto.IRange;                        // which range to include
+        range: Manifesto.IRange | null;                 // which range to include
         rtlLanguageCodes: string;                       // csv of right-to-left language codes
         sanitizer: (html: string) => string;            // see example for how to pass in a sanitizer
         showAllLanguages: boolean;                      // display all translations
