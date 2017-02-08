@@ -1,4 +1,4 @@
-// iiif-metadata-component v1.0.10 https://github.com/viewdir/iiif-metadata-component#readme
+// iiif-metadata-component v1.0.11 https://github.com/viewdir/iiif-metadata-component#readme
 
 declare namespace IIIFComponents {
     class StringValue {
@@ -8,8 +8,12 @@ declare namespace IIIFComponents {
     }
 }
 
-/// <reference path="StringValue.d.ts" />
-/// <reference path="LimitType.d.ts" />
+declare namespace IIIFComponents.MetadataComponentOptions {
+    class LimitType extends StringValue {
+        static LINES: LimitType;
+        static CHARS: LimitType;
+    }
+}
 
 declare namespace IIIFComponents {
     interface IMetadataComponent extends _Components.IBaseComponent {
@@ -51,13 +55,6 @@ declare namespace IIIFComponents {
         rtlLanguageCodes: string;
         sanitizer: (html: string) => string;
         showAllLanguages: boolean;
-    }
-}
-
-declare namespace IIIFComponents.MetadataComponentOptions {
-    class LimitType extends StringValue {
-        static LINES: LimitType;
-        static CHARS: LimitType;
     }
 }
 

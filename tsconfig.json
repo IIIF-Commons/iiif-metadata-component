@@ -13,7 +13,7 @@
     "files": [
         "src/Definitions.ts",
         "src/StringValue.ts",
-        "src/FileType.ts"
+        "src/LimitType.ts"
     ],
     "include": [
         "src/**/*",
