@@ -298,8 +298,8 @@ namespace IIIFComponents {
             const $label: JQuery = $metadataItem.find('.label');
             const $values: JQuery = $metadataItem.find('.values');
 
-            const originalLabel: string = item.getLabel();
-            let label = originalLabel;
+            const originalLabel: string | null = item.getLabel();
+            let label: string | null = originalLabel;
 
             if (label && item.isRootLevel) {
                 switch (label.toLowerCase()) {
@@ -318,13 +318,13 @@ namespace IIIFComponents {
                 }
             }
 
-            label = this._sanitize(label);
-            $label.html(label);
+            label = this._sanitize(<string>label);
+            $label.html(<string>label);
 
             // rtl?
             this._addReadingDirection($label, this._getItemLocale(item));
 
-            $metadataItem.addClass(label.toCssClass());
+            $metadataItem.addClass((<string>label).toCssClass());
 
             let $value: JQuery;
 

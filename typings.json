@@ -2,11 +2,12 @@
   "name": "iiif-metadata-component",
   "dependencies": {},
   "globalDependencies": {
-    "base-component": "github:viewdir/base-component/dist/base-component.d.ts#v1.0.9",
-    "core-js": "registry:dt/core-js#0.9.7+20161130133742",
-    "jquery": "registry:dt/jquery#1.10.0+20170123093700",
-    "jquery-plugins": "github:edsilv/jquery-plugins/dist/jquery-plugins.d.ts",
-    "manifold.bundle": "github:viewdir/manifold/dist/manifold.bundle.d.ts",
-    "utils": "github:edsilv/utils/dist/utils.d.ts"
+    "base-component": "github:viewdir/base-component/dist/base-component.d.ts#es6",
+    "ex": "github:BSick7/exjs/dist/ex.d.ts",
+    "extensions": "github:edsilv/extensions/dist/extensions.d.ts#es6",
+    "jquery-plugins": "github:edsilv/jquery-plugins/dist/jquery-plugins.d.ts#es6",
+    "manifesto": "github:viewdir/manifesto/dist/manifesto.d.ts#es6",
+    "manifold": "github:viewdir/manifold/dist/manifold.d.ts#es6",
+    "utils": "github:edsilv/utils/dist/utils.d.ts#es6"
   }
 }
