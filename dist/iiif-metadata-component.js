@@ -39,10 +39,10 @@ var IIIFComponents;
             function LimitType() {
                 return _super !== null && _super.apply(this, arguments) || this;
             }
+            LimitType.LINES = new LimitType("lines");
+            LimitType.CHARS = new LimitType("chars");
             return LimitType;
         }(IIIFComponents.StringValue));
-        LimitType.LINES = new LimitType("lines");
-        LimitType.CHARS = new LimitType("chars");
         MetadataComponentOptions.LimitType = LimitType;
     })(MetadataComponentOptions = IIIFComponents.MetadataComponentOptions || (IIIFComponents.MetadataComponentOptions = {}));
 })(IIIFComponents || (IIIFComponents = {}));
