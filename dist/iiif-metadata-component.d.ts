@@ -1,4 +1,4 @@
-// iiif-metadata-component v1.0.11 https://github.com/viewdir/iiif-metadata-component#readme
+// iiif-metadata-component v1.1.0 https://github.com/viewdir/iiif-metadata-component#readme
 /// <reference path="../node_modules/typescript/lib/lib.es6.d.ts" />
 
 declare namespace IIIFComponents {
