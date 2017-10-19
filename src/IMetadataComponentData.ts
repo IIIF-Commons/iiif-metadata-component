@@ -20,6 +20,7 @@ namespace IIIFComponents{
     export interface IMetadataComponentData {
         //aggregateValues: string;                        // csv of metadata items to merge into a single item
         canvasDisplayOrder: string;                     // csv of items to override display order
+        metadataGroupOrder: string;                     // csv of metadata group display order, e.g. "manifest,sequence,range,canvas"
         canvases: Manifesto.ICanvas[] | null;           // which canvases to include
         canvasExclude: string;                          // csv of items to exclude from canvas metadata display
         canvasLabels: string;                           // csv of labels to use for canvas groups
