@@ -63,6 +63,7 @@ namespace IIIFComponents {
                 aggregateValues: "",
                 canvases: null,
                 canvasDisplayOrder: "",
+                metadataGroupOrder: "",
                 canvasExclude: "",
                 canvasLabels: "",
                 content: <IMetadataComponentContent>{
@@ -118,21 +119,24 @@ namespace IIIFComponents {
 
             if (this.options.data.manifestDisplayOrder) {
                 const manifestGroup: MetadataGroup = this._getManifestGroup();
-                manifestGroup.items = this._sort(manifestGroup.items, this._readCSV(this.options.data.manifestDisplayOrder));
+                manifestGroup.items = this._sortItems(manifestGroup.items, this._readCSV(this.options.data.manifestDisplayOrder));
             }
 
             if (this.options.data.canvasDisplayOrder) {
                 const canvasGroups: MetadataGroup[] = this._getCanvasGroups();
 
                 $.each(canvasGroups, (index: number, canvasGroup: MetadataGroup) => {
-                    canvasGroup.items = this._sort(canvasGroup.items, this._readCSV(this.options.data.canvasDisplayOrder));
+                    canvasGroup.items = this._sortItems(canvasGroup.items, this._readCSV(this.options.data.canvasDisplayOrder));
                 });
+            }
+            if (this.options.data.metadataGroupOrder) {
+                this._metadataGroups = this._sortGroups(this._metadataGroups, this._readCSV(this.options.data.metadataGroupOrder));
             }
 
             if (this.options.data.canvasLabels) {
                 this._label(this._getCanvasGroups(), this._readCSV(this.options.data.canvasLabels, false));
             }
-            
+
             if (this.options.data.manifestExclude) {
                 const manifestGroup: MetadataGroup = this._getManifestGroup();
                 manifestGroup.items = this._exclude(manifestGroup.items, this._readCSV(this.options.data.manifestExclude));
@@ -156,7 +160,7 @@ namespace IIIFComponents {
             this._render();
         }
 
-        private _sort(items: MetadataItem[], displayOrder: csvvalue[]): MetadataItem[] {
+        private _sortItems(items: MetadataItem[], displayOrder: csvvalue[]): MetadataItem[] {
 
             let sorted: MetadataItem[] = [];
             let unsorted: MetadataItem[] = items.clone();
@@ -174,6 +178,21 @@ namespace IIIFComponents {
                 sorted.push(item);
             });
 
+            return sorted;
+        }
+
+        private _sortGroups(groups: MetadataGroup[], metadataGroupOrder: csvvalue[]): MetadataGroup[] {
+
+            let sorted: MetadataGroup[] = [];
+            let unsorted: MetadataGroup[] = groups.clone();
+
+            $.each(metadataGroupOrder, (index: number, group: string) => {
+                const match: MetadataGroup = unsorted.en().where(x => x.resource.constructor.name.toLowerCase() == group).first();
+                if (match) {
+                    sorted.push(match);
+                    unsorted.remove(match);
+                }
+            });
             return sorted;
         }
 

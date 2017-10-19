@@ -16,36 +16,46 @@
     <script src="js/extensions.js"></script>
 </head>
 <body>
-    
+    <div class="testFixtureSelection">
+        <button class="testFixture" data-json="http://wellcomelibrary.org/iiif/b18035978/manifest">Manifest metadata</button>
+        <button class="testFixture" data-json="https://iiif.riksarkivet.se/arkis!C0000263/manifest">Canvas metadata</button>
+        <button class="testFixture" data-json="https://iiif.riksarkivet.se/arkis!F0001185/manifest">Merge source reference</button>
+        <button class="testFixture" data-json="https://edsilv.github.io/test-manifests/all-metadata.json">All metadata</button>
+        <button class="testFixture" data-json="http://tomcrane.github.io/scratch/manifests/vdc_100000004987.0x000001.json">RTL</button>
+        <button class="testFixture" data-json="http://bluemountain.princeton.edu/exist/restxq/iiif/collection/top">Collection</button>
+    </div>
+
+    <div class="metadataGroupOrder">
+      <ol>
+        <li>canvas</li>
+        <li>range</li>
+        <li>sequence</li>
+        <li>manifest</li>
+      </ol>
+      <button class="reverseGroups">Reverse</button>
+   </div>
+
     <div id="metadata" class="iiif-metadata-component">
-        loading...
     </div>
 
     <script>
 
         var helper, component;
-        
-        $(function() {
-            
-            // http://wellcomelibrary.org/iiif/b18035978/manifest (Biocrats)
-            // https://iiif.riksarkivet.se/arkis!C0000263/manifest (canvas metadata)
-            // https://iiif.riksarkivet.se/arkis!F0001185/manifest (merge source reference)
-            // https://edsilv.github.io/test-manifests/all-metadata.json (all metadata)
-            // http://tomcrane.github.io/scratch/manifests/vdc_100000004987.0x000001.json (rtl)
-            // http://bluemountain.princeton.edu/exist/restxq/iiif/collection/top
+
+        function loadManifest(manifest, groupOrder) {
 
             Manifold.loadManifest({
-                iiifResourceUri: 'http://wellcomelibrary.org/iiif/b18035978/manifest',
+                iiifResourceUri: manifest,
                 collectionIndex: 0,
                 manifestIndex: 0
             }).then(function(h){
-                
+
                 helper = h;
-                
                 component = new IIIFComponents.MetadataComponent({
                     target: document.querySelector('#metadata'),
                     data: {
-                        canvasDisplayOrder: "attribution, title",
+                      canvasDisplayOrder: "attribution, title",
+                      metadataGroupOrder: groupOrder,
                         canvases: [helper.getCanvasByIndex(0), helper.getCanvasByIndex(1)],
                         canvasLabels: "Left page, Right page",
                         //canvasExclude: "attribution",
@@ -83,6 +93,21 @@
 
             }).catch(function(e) {
                 console.error(e);
+            });
+        };
+
+        $(function() {
+            $('.reverseGroups').click(function() {
+                var ul = $(".metadataGroupOrder").children("ol");
+                var groupOrder = $.makeArray(ul.children("li")).reverse();
+                ul.empty();
+
+              $.each(groupOrder, (i, v) => ul.append(v));
+            });
+            $('.testFixture').click(function() {
+                var ul = $(".metadataGroupOrder").children("ol");
+                var groupOrder = $.map($.makeArray(ul.children("li")), (val, i) => val.innerText).join(",");
+                loadManifest( $(this).data('json'), groupOrder );
             });
         });
 
