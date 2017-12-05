@@ -1,11 +1,10 @@
 {
   "name": "iiif-metadata-component",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "",
   "main": "index.js",
   "types": "./dist/iiif-metadata-component.d.ts",
-  "scripts": {
-  },
+  "scripts": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/iiif-commons/iiif-metadata-component.git"
@@ -27,7 +26,5 @@
     "manifold": "iiif-commons/manifold#v1.2.12",
     "utils": "edsilv/utils#v0.1.2"
   },
-  "dependencies": {
-    
-  }
+  "dependencies": {}
 }
