@@ -1,5 +1,4 @@
-// iiif-metadata-component v1.1.0 https://github.com/viewdir/iiif-metadata-component#readme
-/// <reference path="../node_modules/typescript/lib/lib.es6.d.ts" />
+// iiif-metadata-component v1.1.0 https://github.com/iiif-commons/iiif-metadata-component#readme
 
 declare namespace IIIFComponents {
     class StringValue {
@@ -21,6 +20,8 @@ declare namespace IIIFComponents {
     }
 }
 
+/// <reference types="manifesto.js" />
+/// <reference types="manifold" />
 declare namespace IIIFComponents {
     interface IMetadataComponentContent {
         attribution: string;
@@ -40,6 +41,7 @@ declare namespace IIIFComponents {
     }
     interface IMetadataComponentData {
         canvasDisplayOrder: string;
+        metadataGroupOrder: string;
         canvases: Manifesto.ICanvas[] | null;
         canvasExclude: string;
         canvasLabels: string;
@@ -59,6 +61,8 @@ declare namespace IIIFComponents {
     }
 }
 
+/// <reference types="manifold" />
+/// <reference types="base-component" />
 import MetadataItem = Manifold.IMetadataItem;
 import MetadataGroup = Manifold.MetadataGroup;
 declare type csvvalue = string | null;
@@ -79,7 +83,8 @@ declare namespace IIIFComponents {
         private _getManifestGroup();
         private _getCanvasGroups();
         set(): void;
-        private _sort(items, displayOrder);
+        private _sortItems(items, displayOrder);
+        private _sortGroups(groups, metadataGroupOrder);
         private _label(groups, labels);
         private _exclude(items, excludeConfig);
         private _normalise(value);
