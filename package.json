@@ -1,6 +1,6 @@
 {
   "name": "iiif-metadata-component",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "",
   "main": "index.js",
   "types": "./dist/iiif-metadata-component.d.ts",
@@ -22,8 +22,8 @@
     "gulp": "^3.9.1",
     "gulp-tasks": "iiif-commons/gulp-tasks#v1.0.7",
     "jquery-plugins": "edsilv/jquery-plugins#v1.0.0",
-    "manifesto.js": "^2.2.1",
-    "manifold": "iiif-commons/manifold#v1.2.12",
+    "manifesto.js": "2.2.2",
+    "manifold": "iiif-commons/manifold#v1.2.13",
     "utils": "edsilv/utils#v0.1.2"
   },
   "dependencies": {}
