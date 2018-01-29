@@ -7,13 +7,19 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsviews/0.9.75/jsviews.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/core-js/2.4.1/core.min.js"></script>
-    <script src="js/manifold.bundle.js"></script>
+    <script src="https://unpkg.com/manifesto.js/dist/client/manifesto.bundle.js"></script>
+    <script src="https://unpkg.com/@iiif/manifold/dist/manifold.js"></script>
     <script src="js/base-component.js"></script>
     <script src="js/iiif-metadata-component.js"></script>
     <script src="js/jquery-plugins.js"></script>
     <script src="sanitize.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/extensions.js"></script>
+    <style type="text/css">
+        .options div {
+            margin-bottom: 40px;
+        }
+    </style>
 </head>
 <body>
     <div class="testFixtureSelection">
@@ -23,17 +29,27 @@
         <button class="testFixture" data-json="https://edsilv.github.io/test-manifests/all-metadata.json">All metadata</button>
         <button class="testFixture" data-json="http://tomcrane.github.io/scratch/manifests/vdc_100000004987.0x000001.json">RTL</button>
         <button class="testFixture" data-json="http://bluemountain.princeton.edu/exist/restxq/iiif/collection/top">Collection</button>
+        <button class="testFixture" data-json="https://edsilv.github.io/test-manifests/range-renderings.json">Multilingual</button>
     </div>
 
-    <div class="metadataGroupOrder">
-      <ol>
-        <li>canvas</li>
-        <li>range</li>
-        <li>sequence</li>
-        <li>manifest</li>
-      </ol>
-      <button class="reverseGroups">Reverse</button>
-   </div>
+    <div class="options">
+
+        <div class="metadataGroupOrder">
+            <ol>
+                <li>canvas</li>
+                <li>range</li>
+                <li>sequence</li>
+                <li>manifest</li>
+            </ol>
+            <button class="reverseGroups">Reverse</button>
+        </div>
+
+        <div class="locale">
+            <input id="locale1" checked type="radio" name="locale" value="en-gb"><label for="locale1">en-GB</label>
+            <input id="locale2" type="radio" name="locale" value="cy-gb"><label for="locale2">cy-GB</label>
+        </div>
+
+    </div>
 
     <div id="metadata" class="iiif-metadata-component">
     </div>
@@ -44,18 +60,21 @@
 
         function loadManifest(manifest, groupOrder) {
 
+            var locale = $("input:radio[name='locale']:checked").val();
+
             Manifold.loadManifest({
                 iiifResourceUri: manifest,
                 collectionIndex: 0,
-                manifestIndex: 0
+                manifestIndex: 0,
+                locale: locale
             }).then(function(h){
 
                 helper = h;
                 component = new IIIFComponents.MetadataComponent({
                     target: document.querySelector('#metadata'),
                     data: {
-                      canvasDisplayOrder: "attribution, title",
-                      metadataGroupOrder: groupOrder,
+                        canvasDisplayOrder: "attribution, title",
+                        metadataGroupOrder: groupOrder,
                         canvases: [helper.getCanvasByIndex(0), helper.getCanvasByIndex(1)],
                         canvasLabels: "Left page, Right page",
                         //canvasExclude: "attribution",
@@ -97,18 +116,20 @@
         };
 
         $(function() {
+
             $('.reverseGroups').click(function() {
                 var ul = $(".metadataGroupOrder").children("ol");
                 var groupOrder = $.makeArray(ul.children("li")).reverse();
                 ul.empty();
-
-              $.each(groupOrder, (i, v) => ul.append(v));
+                $.each(groupOrder, (i, v) => ul.append(v));
             });
+
             $('.testFixture').click(function() {
                 var ul = $(".metadataGroupOrder").children("ol");
                 var groupOrder = $.map($.makeArray(ul.children("li")), (val, i) => val.innerText).join(",");
                 loadManifest( $(this).data('json'), groupOrder );
             });
+
         });
 
     </script>

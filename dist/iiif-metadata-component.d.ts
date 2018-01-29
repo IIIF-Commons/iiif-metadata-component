@@ -1,4 +1,4 @@
-// iiif-metadata-component v1.1.2 https://github.com/iiif-commons/iiif-metadata-component#readme
+// iiif-metadata-component v1.1.3 https://github.com/iiif-commons/iiif-metadata-component#readme
 
 declare namespace IIIFComponents {
     class StringValue {
@@ -21,7 +21,7 @@ declare namespace IIIFComponents {
 }
 
 /// <reference types="manifesto.js" />
-/// <reference types="manifold" />
+/// <reference types="@iiif/manifold" />
 declare namespace IIIFComponents {
     interface IMetadataComponentContent {
         attribution: string;
@@ -61,7 +61,7 @@ declare namespace IIIFComponents {
     }
 }
 
-/// <reference types="manifold" />
+/// <reference types="@iiif/manifold" />
 /// <reference types="base-component" />
 import MetadataItem = Manifold.IMetadataItem;
 import MetadataGroup = Manifold.MetadataGroup;
