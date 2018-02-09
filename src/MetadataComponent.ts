@@ -319,7 +319,7 @@ namespace IIIFComponents {
 
             const originalLabel: string | null = item.getLabel();
             let label: string | null = originalLabel;
-            var urlPattern = new RegExp("((<a href=\\\\\"http|https)(:\/\/))?(.*)", "i");
+            var urlPattern = new RegExp("/\w+:(\/?\/?)[^\s]+/gm", "i");
 
             if (label && item.isRootLevel) {
                 switch (label.toLowerCase()) {
@@ -349,7 +349,7 @@ namespace IIIFComponents {
             let $value: JQuery;
 
             // if the value is a URI
-            if (originalLabel && originalLabel.toLowerCase() === "license" && (urlPattern.exec(item.value[0].value) == null)) {
+            if (originalLabel && originalLabel.toLowerCase() === "license" && (urlPattern.exec(item.value[0].value) != null)) {
                 $value = this._buildMetadataItemURIValue(item.value[0].value);
                 $values.append($value);
             } else {
