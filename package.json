@@ -24,7 +24,7 @@
     "jquery-plugins": "edsilv/jquery-plugins#v1.0.0",
     "manifesto.js": "2.2.2",
     "@iiif/manifold": "1.2.17",
-    "utils": "edsilv/utils#v0.2.0"
+    "utils": "edsilv/utils#v0.2.1"
   },
   "dependencies": {}
 }
