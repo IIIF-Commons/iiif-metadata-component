@@ -163,13 +163,17 @@ namespace IIIFComponents {
         private _sortItems(items: MetadataItem[], displayOrder: csvvalue[]): MetadataItem[] {
 
             let sorted: MetadataItem[] = [];
-            let unsorted: MetadataItem[] = items.clone();
+            let unsorted: MetadataItem[] = items.slice(0);
 
             $.each(displayOrder, (index: number, item: string) => {
                 const match: MetadataItem = unsorted.en().where((x => this._normalise(x.getLabel()) === item)).first();
                 if (match){
                     sorted.push(match);
-                    unsorted.remove(match);
+
+                    const index: number = unsorted.indexOf(match);
+                    if (index > -1) {
+                        unsorted.splice(index, 1);
+                    }
                 }
             });
 
@@ -184,13 +188,16 @@ namespace IIIFComponents {
         private _sortGroups(groups: MetadataGroup[], metadataGroupOrder: csvvalue[]): MetadataGroup[] {
 
             let sorted: MetadataGroup[] = [];
-            let unsorted: MetadataGroup[] = groups.clone();
+            let unsorted: MetadataGroup[] = groups.slice(0);
 
             $.each(metadataGroupOrder, (index: number, group: string) => {
                 const match: MetadataGroup = unsorted.en().where(x => x.resource.constructor.name.toLowerCase() == group).first();
                 if (match) {
                     sorted.push(match);
-                    unsorted.remove(match);
+                    const index: number = unsorted.indexOf(match);
+                    if (index > -1) {
+                        unsorted.splice(index, 1);
+                    }
                 }
             });
             return sorted;
@@ -208,7 +215,10 @@ namespace IIIFComponents {
             $.each(excludeConfig, (index: number, item: string) => {
                 const match: MetadataItem = items.en().where((x => this._normalise(x.getLabel()) === item)).first();
                 if (match) {
-                    items.remove(match);
+                    const index: number = items.indexOf(match);
+                    if (index > -1) {
+                        items.splice(index, 1);
+                    }
                 }
             });
             
@@ -344,7 +354,7 @@ namespace IIIFComponents {
             // rtl?
             this._addReadingDirection($label, this._getItemLocale(item));
 
-            $metadataItem.addClass((<string>label).toCssClass());
+            $metadataItem.addClass(Utils.Strings.toCssClass(<string>label));
 
             let $value: JQuery;
 

@@ -13,7 +13,6 @@
         "types": [
             "@iiif/manifold",
             "base-component",
-            "extensions",
             "jquery-plugins",
             "manifesto.js",
             "utils"
