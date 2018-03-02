@@ -1,6 +1,6 @@
 # iiif-metadata-component
 
-http://viewdir.github.io/iiif-metadata-component/examples/
+http://iiif-commons.github.io/iiif-metadata-component/examples/
 
 **Ensure you have the [typings](https://github.com/typings/typings) CLI installed**
 
