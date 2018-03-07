@@ -337,7 +337,7 @@ namespace IIIFComponents {
 
             const originalLabel: string | null = item.getLabel();
             let label: string | null = originalLabel;
-            var urlPattern = new RegExp("/\w+:(\/?\/?)[^\s]+/gm", "i");
+            const urlPattern = new RegExp("/\w+:(\/?\/?)[^\s]+/gm", "i");
 
             if (label && item.isRootLevel) {
                 switch (label.toLowerCase()) {
@@ -360,14 +360,14 @@ namespace IIIFComponents {
             $label.html(<string>label);
 
             // rtl?
-            this._addReadingDirection($label, this._getItemLocale(item));
+            this._addReadingDirection($label, this._getLabelLocale(item));
 
             $metadataItem.addClass(Utils.Strings.toCssClass(<string>label));
 
             let $value: JQuery;
 
             // if the value is a URI
-            if (originalLabel && originalLabel.toLowerCase() === "license" && (urlPattern.exec(item.value[0].value) != null)) {
+            if (originalLabel && originalLabel.toLowerCase() === "license" && (urlPattern.exec(item.value[0].value) !== null)) {
                 $value = this._buildMetadataItemURIValue(item.value[0].value);
                 $values.append($value);
             } else {
@@ -381,14 +381,14 @@ namespace IIIFComponents {
                     }
                 } else {
 
-                    const itemLocale: string = this._getItemLocale(item);
+                    const valueLocale: string =  this._getValueLocale(item);
                     let valueFound: boolean = false;
 
                     // display all values in the item's locale
                     for (let i = 0; i < item.value.length; i++) {
                         const translation: Manifesto.Translation = item.value[i];
 
-                        if (itemLocale === translation.locale) {
+                        if (valueLocale.toLowerCase() === translation.locale.toLowerCase()) {
                             valueFound = true;
                             $value = this._buildMetadataItemValue(translation.value, translation.locale);
                             $values.append($value);
@@ -416,12 +416,43 @@ namespace IIIFComponents {
             return $metadataItem;
         }
 
-        private _getItemLocale(item: MetadataItem): string {
+        private _getLabelLocale(item: MetadataItem): string {
             if (!this._data || !this._data.helper) {
-                return ''; // todo: remove
+                return '';
             }
-            // the item's label locale takes precedence
-            return (item.label.length && item.label[0].locale) ? item.label[0].locale : item.defaultLocale || this._data.helper.options.locale;
+
+            const defaultLocale: string = this._data.helper.options.locale;
+
+            if (item.label.length) {
+
+                const labelLocale: string = item.label[0].locale;
+
+                if (labelLocale.toLowerCase() !== defaultLocale.toLowerCase()) {
+                    return labelLocale;
+                }
+            }
+
+            return defaultLocale;
+        }
+
+        private _getValueLocale(item: MetadataItem): string {
+
+            if (!this._data || !this._data.helper) {
+                return '';
+            }
+
+            const defaultLocale: string = this._data.helper.options.locale;
+            
+            // if (item.value.length) {
+
+            //     const valueLocale: string = item.value[0].locale;
+
+            //     if (valueLocale.toLowerCase() !== defaultLocale.toLowerCase()) {
+            //         return valueLocale;
+            //     }
+            // }
+
+            return defaultLocale;
         }
 
         private _buildMetadataItemValue(value: string, locale: string): JQuery {

@@ -92,7 +92,8 @@ declare namespace IIIFComponents {
         private _render();
         private _buildMetadataGroup(metadataGroup);
         private _buildMetadataItem(item);
-        private _getItemLocale(item);
+        private _getLabelLocale(item);
+        private _getValueLocale(item);
         private _buildMetadataItemValue(value, locale);
         private _buildMetadataItemURIValue(value);
         private _addReadingDirection($elem, locale);

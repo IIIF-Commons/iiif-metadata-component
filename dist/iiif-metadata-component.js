@@ -343,11 +343,11 @@ var IIIFComponents;
             label = this._sanitize(label);
             $label.html(label);
             // rtl?
-            this._addReadingDirection($label, this._getItemLocale(item));
+            this._addReadingDirection($label, this._getLabelLocale(item));
             $metadataItem.addClass(Utils.Strings.toCssClass(label));
             var $value;
             // if the value is a URI
-            if (originalLabel && originalLabel.toLowerCase() === "license" && (urlPattern.exec(item.value[0].value) != null)) {
+            if (originalLabel && originalLabel.toLowerCase() === "license" && (urlPattern.exec(item.value[0].value) !== null)) {
                 $value = this._buildMetadataItemURIValue(item.value[0].value);
                 $values.append($value);
             }
@@ -361,12 +361,12 @@ var IIIFComponents;
                     }
                 }
                 else {
-                    var itemLocale = this._getItemLocale(item);
+                    var valueLocale = this._getValueLocale(item);
                     var valueFound = false;
                     // display all values in the item's locale
                     for (var i = 0; i < item.value.length; i++) {
                         var translation = item.value[i];
-                        if (itemLocale === translation.locale) {
+                        if (valueLocale.toLowerCase() === translation.locale.toLowerCase()) {
                             valueFound = true;
                             $value = this._buildMetadataItemValue(translation.value, translation.locale);
                             $values.append($value);
@@ -387,12 +387,31 @@ var IIIFComponents;
             }
             return $metadataItem;
         };
-        MetadataComponent.prototype._getItemLocale = function (item) {
+        MetadataComponent.prototype._getLabelLocale = function (item) {
             if (!this._data || !this._data.helper) {
                 return '';
             }
-            // the item's label locale takes precedence
-            return (item.label.length && item.label[0].locale) ? item.label[0].locale : item.defaultLocale || this._data.helper.options.locale;
+            var defaultLocale = this._data.helper.options.locale;
+            if (item.label.length) {
+                var labelLocale = item.label[0].locale;
+                if (labelLocale.toLowerCase() !== defaultLocale.toLowerCase()) {
+                    return labelLocale;
+                }
+            }
+            return defaultLocale;
+        };
+        MetadataComponent.prototype._getValueLocale = function (item) {
+            if (!this._data || !this._data.helper) {
+                return '';
+            }
+            var defaultLocale = this._data.helper.options.locale;
+            // if (item.value.length) {
+            //     const valueLocale: string = item.value[0].locale;
+            //     if (valueLocale.toLowerCase() !== defaultLocale.toLowerCase()) {
+            //         return valueLocale;
+            //     }
+            // }
+            return defaultLocale;
         };
         MetadataComponent.prototype._buildMetadataItemValue = function (value, locale) {
             value = this._sanitize(value);
