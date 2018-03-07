@@ -12,9 +12,10 @@ namespace IIIFComponents {
         private _$metadataGroups: JQuery;
         private _$metadataGroupTemplate: JQuery;
         private _$metadataItemTemplate: JQuery;
-        private _$metadataItemValueTemplate: JQuery;
         private _$metadataItemURIValueTemplate: JQuery;
+        private _$metadataItemValueTemplate: JQuery;
         private _$noData: JQuery;
+        private _data: IMetadataComponentData = this.data();
         private _metadataGroups: MetadataGroup[];
 
         constructor(options: _Components.IBaseComponentOptions) {
@@ -45,14 +46,14 @@ namespace IIIFComponents {
 
             this._$metadataItemURIValueTemplate = $('<a class="value" href="" target="_blank"></a>');
 
-            this._$copyTextTemplate =       $('<div class="copyText" alt="' + this.options.data.content.copyToClipboard  + '" title="' + this.options.data.content.copyToClipboard + '">\
-                                                   <div class="copiedText">' + this.options.data.content.copiedToClipboard + ' </div>\
+            this._$copyTextTemplate =       $('<div class="copyText" alt="' + this._data.content.copyToClipboard  + '" title="' + this._data.content.copyToClipboard + '">\
+                                                   <div class="copiedText">' + this._data.content.copiedToClipboard + ' </div>\
                                                </div>');
 
             this._$metadataGroups = $('<div class="groups"></div>');
             this._$element.append(this._$metadataGroups);
 
-            this._$noData = $('<div class="noData">' + this.options.data.content.noData + '</div>');
+            this._$noData = $('<div class="noData">' + this._data.content.noData + '</div>');
             this._$element.append(this._$noData);
 
             return success;
@@ -105,57 +106,55 @@ namespace IIIFComponents {
             return this._metadataGroups.en().where(x => x.resource.isCanvas()).toArray();
         }
 
-        public set(): void {
+        public set(data: IMetadataComponentData): void {
 
-            this._$metadataGroups.empty();
+            $.extend(this._data, data);
 
-            const options: Manifold.MetadataOptions = <Manifold.MetadataOptions>{
-                canvases: this.options.data.canvases,
-                licenseFormatter: this.options.data.licenseFormatter,
-                range: this.options.data.range
-            }
-
-            this._metadataGroups = this.options.data.helper.getMetadata(options);
-
-            if (this.options.data.manifestDisplayOrder) {
-                const manifestGroup: MetadataGroup = this._getManifestGroup();
-                manifestGroup.items = this._sortItems(manifestGroup.items, this._readCSV(this.options.data.manifestDisplayOrder));
-            }
-
-            if (this.options.data.canvasDisplayOrder) {
-                const canvasGroups: MetadataGroup[] = this._getCanvasGroups();
-
-                $.each(canvasGroups, (index: number, canvasGroup: MetadataGroup) => {
-                    canvasGroup.items = this._sortItems(canvasGroup.items, this._readCSV(this.options.data.canvasDisplayOrder));
-                });
-            }
-            if (this.options.data.metadataGroupOrder) {
-                this._metadataGroups = this._sortGroups(this._metadataGroups, this._readCSV(this.options.data.metadataGroupOrder));
-            }
-
-            if (this.options.data.canvasLabels) {
-                this._label(this._getCanvasGroups(), this._readCSV(this.options.data.canvasLabels, false));
-            }
-
-            if (this.options.data.manifestExclude) {
-                const manifestGroup: MetadataGroup = this._getManifestGroup();
-                manifestGroup.items = this._exclude(manifestGroup.items, this._readCSV(this.options.data.manifestExclude));
-            }
-
-            if (this.options.data.canvasExclude) {
-                const canvasGroups: MetadataGroup[] = this._getCanvasGroups();
-
-                $.each(canvasGroups, (index: number, canvasGroup: MetadataGroup) => {
-                    canvasGroup.items = this._exclude(canvasGroup.items, this._readCSV(this.options.data.canvasExclude));
-                });
-            }
-
-            if (!this._metadataGroups.length){
-                this._$noData.show();
+            if (!this._data || !this._data.helper) {
                 return;
             }
 
-            this._$noData.hide();
+            const options: Manifold.MetadataOptions = <Manifold.MetadataOptions>{
+                canvases: this._data.canvases,
+                licenseFormatter: this._data.licenseFormatter,
+                range: this._data.range
+            }
+
+            this._metadataGroups = this._data.helper.getMetadata(options);
+
+            if (this._data.manifestDisplayOrder) {
+                const manifestGroup: MetadataGroup = this._getManifestGroup();
+                manifestGroup.items = this._sortItems(manifestGroup.items, this._readCSV(this._data.manifestDisplayOrder));
+            }
+
+            if (this._data.canvasDisplayOrder) {
+                const canvasGroups: MetadataGroup[] = this._getCanvasGroups();
+
+                canvasGroups.forEach((canvasGroup: MetadataGroup, index: number) => {
+                    canvasGroup.items = this._sortItems(canvasGroup.items, this._readCSV(this._data.canvasDisplayOrder));
+                });
+            }
+
+            if (this._data.metadataGroupOrder) {
+                this._metadataGroups = this._sortGroups(this._metadataGroups, this._readCSV(this._data.metadataGroupOrder));
+            }
+
+            if (this._data.canvasLabels) {
+                this._label(this._getCanvasGroups(), this._readCSV(this._data.canvasLabels, false));
+            }
+
+            if (this._data.manifestExclude) {
+                const manifestGroup: MetadataGroup = this._getManifestGroup();
+                manifestGroup.items = this._exclude(manifestGroup.items, this._readCSV(this._data.manifestExclude));
+            }
+
+            if (this._data.canvasExclude) {
+                const canvasGroups: MetadataGroup[] = this._getCanvasGroups();
+
+                canvasGroups.forEach((canvasGroup: MetadataGroup, index: number) => {
+                    canvasGroup.items = this._exclude(canvasGroup.items, this._readCSV(this._data.canvasExclude));
+                });
+            }
 
             this._render();
         }
@@ -165,7 +164,7 @@ namespace IIIFComponents {
             let sorted: MetadataItem[] = [];
             let unsorted: MetadataItem[] = items.slice(0);
 
-            $.each(displayOrder, (index: number, item: string) => {
+            displayOrder.forEach((item: string, index: number) => {
                 const match: MetadataItem = unsorted.en().where((x => this._normalise(x.getLabel()) === item)).first();
                 if (match){
                     sorted.push(match);
@@ -178,7 +177,7 @@ namespace IIIFComponents {
             });
 
             // add remaining items that were not in the displayOrder.
-            $.each(unsorted, (index: number, item: MetadataItem) => {
+            unsorted.forEach((item: MetadataItem, index: number) => {
                 sorted.push(item);
             });
 
@@ -190,7 +189,7 @@ namespace IIIFComponents {
             let sorted: MetadataGroup[] = [];
             let unsorted: MetadataGroup[] = groups.slice(0);
 
-            $.each(metadataGroupOrder, (index: number, group: string) => {
+            metadataGroupOrder.forEach((group: string, index: number) => {
                 const match: MetadataGroup = unsorted.en().where(x => x.resource.constructor.name.toLowerCase() == group).first();
                 if (match) {
                     sorted.push(match);
@@ -205,14 +204,14 @@ namespace IIIFComponents {
 
         private _label(groups: MetadataGroup[], labels: csvvalue[]): void {
 
-            $.each(groups, (index: number, group: MetadataGroup) => {
+            groups.forEach((group: MetadataGroup, index: number) => {
                 group.label = <string>labels[index];
             });
         }
 
         private _exclude(items: MetadataItem[], excludeConfig: csvvalue[]): MetadataItem[] {
 
-            $.each(excludeConfig, (index: number, item: string) => {
+            excludeConfig.forEach((item: string, index: number) => {
                 const match: MetadataItem = items.en().where((x => this._normalise(x.getLabel()) === item)).first();
                 if (match) {
                     const index: number = items.indexOf(match);
@@ -229,7 +228,7 @@ namespace IIIFComponents {
         //     // flatten metadata into array.
         //     var flattened: MetadataItem[] = [];
 
-        //     $.each(items, (index: number, item: any) => {
+        //     items.forEach(item: any, index: number) => {
         //         if (Array.isArray(item.value)){
         //             flattened = flattened.concat(<MetadataItem[]>item.value);
         //         } else {
@@ -246,9 +245,9 @@ namespace IIIFComponents {
 
         //     if (this._aggregateValues.length) {
 
-        //         $.each(canvasMetadata, (index: number, canvasItem: any) => {
+        //         canvasMetadata.forEach((canvasItem: any, index: number) => {
 
-        //             $.each(this._aggregateValues, (index: number, value: string) => {
+        //             this._aggregateValues.forEach((value: string, index: number) => {
 
         //                 value = this._normalise(value);
 
@@ -277,14 +276,23 @@ namespace IIIFComponents {
 
         private _render(): void {
 
-            $.each(this._metadataGroups, (index: number, metadataGroup: MetadataGroup) => {
+            if (!this._metadataGroups.length) {
+                this._$noData.show();
+                return;
+            }
+
+            this._$noData.hide();
+
+            this._$metadataGroups.empty();
+
+            this._metadataGroups.forEach((metadataGroup: MetadataGroup, index: number) => {
                 const $metadataGroup: JQuery = this._buildMetadataGroup(metadataGroup);
                 this._$metadataGroups.append($metadataGroup);
 
-                if (this.options.data.limitType === MetadataComponentOptions.LimitType.LINES) {
-                    $metadataGroup.find('.value').toggleExpandTextByLines(this.options.data.limit, this.options.data.content.less, this.options.data.content.more, () => {});
-                } else if (this.options.data.limitType === MetadataComponentOptions.LimitType.CHARS) {
-                    $metadataGroup.find('.value').ellipsisHtmlFixed(this.options.data.limit, () => {});
+                if (this._data.limitType === MetadataComponentOptions.LimitType.LINES) {
+                    $metadataGroup.find('.value').toggleExpandTextByLines(this._data.limit, this._data.content.less, this._data.content.more, () => {});
+                } else if (this._data.limitType === MetadataComponentOptions.LimitType.CHARS) {
+                    $metadataGroup.find('.value').ellipsisHtmlFixed(this._data.limit, () => {});
                 }
             });
         }
@@ -294,17 +302,17 @@ namespace IIIFComponents {
             const $header: JQuery = $metadataGroup.find('>.header');
 
             // add group header
-            if (metadataGroup.resource.isManifest() && this.options.data.content.manifestHeader) {
-                $header.html(this._sanitize(this.options.data.content.manifestHeader));
-            } else if (metadataGroup.resource.isSequence() && this.options.data.content.sequenceHeader) {
-                $header.html(this._sanitize(this.options.data.content.sequenceHeader));
-            } else if (metadataGroup.resource.isRange() && this.options.data.content.rangeHeader) {
-                $header.html(this._sanitize(this.options.data.content.rangeHeader));
-            } else if (metadataGroup.resource.isCanvas() && (metadataGroup.label || this.options.data.content.canvasHeader)) {
-                const header: string = metadataGroup.label || this.options.data.content.canvasHeader;
+            if (metadataGroup.resource.isManifest() && this._data.content.manifestHeader) {
+                $header.html(this._sanitize(this._data.content.manifestHeader));
+            } else if (metadataGroup.resource.isSequence() && this._data.content.sequenceHeader) {
+                $header.html(this._sanitize(this._data.content.sequenceHeader));
+            } else if (metadataGroup.resource.isRange() && this._data.content.rangeHeader) {
+                $header.html(this._sanitize(this._data.content.rangeHeader));
+            } else if (metadataGroup.resource.isCanvas() && (metadataGroup.label || this._data.content.canvasHeader)) {
+                const header: string = metadataGroup.label || this._data.content.canvasHeader;
                 $header.html(this._sanitize(header));
-            } else if (metadataGroup.resource.isAnnotation() && this.options.data.content.imageHeader) {
-                $header.html(this._sanitize(this.options.data.content.imageHeader));
+            } else if (metadataGroup.resource.isAnnotation() && this._data.content.imageHeader) {
+                $header.html(this._sanitize(this._data.content.imageHeader));
             }
 
             if (!$header.text()) {
@@ -334,16 +342,16 @@ namespace IIIFComponents {
             if (label && item.isRootLevel) {
                 switch (label.toLowerCase()) {
                     case "attribution":
-                        label = this.options.data.content.attribution;
+                        label = this._data.content.attribution;
                         break;
                     case "description":
-                        label = this.options.data.content.description;
+                        label = this._data.content.description;
                         break;
                     case "license":
-                        label = this.options.data.content.license;
+                        label = this._data.content.license;
                         break;
                     case "logo":
-                        label = this.options.data.content.logo;
+                        label = this._data.content.logo;
                         break;
                 }
             }
@@ -364,7 +372,7 @@ namespace IIIFComponents {
                 $values.append($value);
             } else {
 
-                if (this.options.data.showAllLanguages && item.value && item.value.length > 1) {
+                if (this._data.showAllLanguages && item.value && item.value.length > 1) {
                     // display all values in each locale
                     for (let i = 0; i < item.value.length; i++) {
                         const translation: Manifesto.Translation = item.value[i];
@@ -401,7 +409,7 @@ namespace IIIFComponents {
             }
 
 
-            if (this.options.data.copyToClipboardEnabled && Utils.Clipboard.supportsCopy() && $label.text()){
+            if (this._data.copyToClipboardEnabled && Utils.Clipboard.supportsCopy() && $label.text()){
                 this._addCopyButton($metadataItem, $label, $values);
             }
 
@@ -409,8 +417,11 @@ namespace IIIFComponents {
         }
 
         private _getItemLocale(item: MetadataItem): string {
+            if (!this._data || !this._data.helper) {
+                return ''; // todo: remove
+            }
             // the item's label locale takes precedence
-            return (item.label.length && item.label[0].locale) ? item.label[0].locale : item.defaultLocale || this.options.data.helper.options.locale;
+            return (item.label.length && item.label[0].locale) ? item.label[0].locale : item.defaultLocale || this._data.helper.options.locale;
         }
 
         private _buildMetadataItemValue(value: string, locale: string): JQuery {
@@ -438,7 +449,7 @@ namespace IIIFComponents {
 
         private _addReadingDirection($elem: JQuery, locale: string) {
             locale = Manifesto.Utils.getInexactLocale(locale);
-            const rtlLanguages: csvvalue[] = this._readCSV(this.options.data.rtlLanguageCodes);
+            const rtlLanguages: csvvalue[] = this._readCSV(this._data.rtlLanguageCodes);
             const match: boolean = rtlLanguages.en().where(x => x === locale).toArray().length > 0;
 
             if (match) {
@@ -483,7 +494,7 @@ namespace IIIFComponents {
 
             setTimeout(() => {
                 $copiedText.hide();
-            }, this.options.data.copiedMessageDuration);
+            }, this._data.copiedMessageDuration);
         }
         
         private _readCSV(config: string, normalise: boolean = true): csvvalue[] {
@@ -505,7 +516,7 @@ namespace IIIFComponents {
         }
         
         private _sanitize(html: string) {
-            return this.options.data.sanitizer(html);
+            return this._data.sanitizer(html);
         }
 
         protected _resize(): void {

@@ -14,7 +14,6 @@
     <script src="js/jquery-plugins.js"></script>
     <script src="sanitize.js"></script>
     <script src="js/utils.js"></script>
-    <script src="js/extensions.js"></script>
     <style type="text/css">
         .options div {
             margin-bottom: 40px;
@@ -24,8 +23,8 @@
 <body>
     <div class="testFixtureSelection">
         <button class="testFixture" data-json="http://wellcomelibrary.org/iiif/b18035978/manifest">Manifest metadata</button>
-        <button class="testFixture" data-json="https://iiif.riksarkivet.se/arkis!C0000263/manifest">Canvas metadata</button>
-        <button class="testFixture" data-json="https://iiif.riksarkivet.se/arkis!F0001185/manifest">Merge source reference</button>
+        <!-- <button class="testFixture" data-json="https://iiif.riksarkivet.se/arkis!C0000263/manifest">Canvas metadata</button> -->
+        <!-- <button class="testFixture" data-json="https://iiif.riksarkivet.se/arkis!F0001185/manifest">Merge source reference</button> -->
         <button class="testFixture" data-json="https://edsilv.github.io/test-manifests/all-metadata.json">All metadata</button>
         <button class="testFixture" data-json="http://tomcrane.github.io/scratch/manifests/vdc_100000004987.0x000001.json">RTL</button>
         <button class="testFixture" data-json="http://bluemountain.princeton.edu/exist/restxq/iiif/collection/top">Collection</button>
@@ -45,6 +44,7 @@
         </div>
 
         <div class="locale">
+            <input id="allLanguages" type="checkbox" /><label for="allLanguages">Show All Languages</label>&nbsp;
             <input id="locale1" checked type="radio" name="locale" value="en-gb"><label for="locale1">en-GB</label>
             <input id="locale2" type="radio" name="locale" value="cy-gb"><label for="locale2">cy-GB</label>
         </div>
@@ -56,9 +56,12 @@
 
     <script>
 
-        var helper, component;
+        function getGroupOrder() {
+            var ul = $(".metadataGroupOrder").children("ol");
+            return $.map($.makeArray(ul.children("li")), (val, i) => val.innerText).join(",");
+        }
 
-        function loadManifest(manifest, groupOrder) {
+        function loadManifest(manifest) {
 
             var locale = $("input:radio[name='locale']:checked").val();
 
@@ -67,48 +70,46 @@
                 collectionIndex: 0,
                 manifestIndex: 0,
                 locale: locale
-            }).then(function(h){
+            }).then(function(helper){
 
-                helper = h;
                 component = new IIIFComponents.MetadataComponent({
-                    target: document.querySelector('#metadata'),
-                    data: {
-                        canvasDisplayOrder: "attribution, title",
-                        metadataGroupOrder: groupOrder,
-                        canvases: [helper.getCanvasByIndex(0), helper.getCanvasByIndex(1)],
-                        canvasLabels: "Left page, Right page",
-                        //canvasExclude: "attribution",
-                        copyToClipboardEnabled: true,
-                        helper: h,
-                        limitType: IIIFComponents.MetadataComponentOptions.LimitType.LINES,
-                        //manifestDisplayOrder: "attribution, publication date, license, title",
-                        //manifestExclude: "license, attribution",
-                        range: helper.getRanges()[0],
-                        sanitizer: function(html) {
-                            var elem = document.createElement('div');
-                            var $elem = $(elem);
-                            $elem.html(html);
-
-                            var s = new Sanitize({
-                                elements:   ['a', 'b', 'br', 'img', 'p', 'i', 'span'],
-                                attributes: {
-                                    a: ['href'],
-                                    img: ['src', 'alt']
-                                },
-                                protocols:  {
-                                    a: { href: ['http', 'https'] }
-                                }
-                            });
-
-                            $elem.html(s.clean_node(elem));
-
-                            return $elem.html();
-                        },
-                        showAllLanguages: false
-                    }
+                    target: document.querySelector('#metadata')
                 });
 
-                component.set();
+                component.set({
+                    canvasDisplayOrder: "attribution, title",
+                    metadataGroupOrder: getGroupOrder(),
+                    canvases: [helper.getCanvasByIndex(0), helper.getCanvasByIndex(1)],
+                    canvasLabels: "Left page, Right page",
+                    //canvasExclude: "attribution",
+                    copyToClipboardEnabled: true,
+                    helper: helper,
+                    limitType: IIIFComponents.MetadataComponentOptions.LimitType.LINES,
+                    //manifestDisplayOrder: "attribution, publication date, license, title",
+                    //manifestExclude: "license, attribution",
+                    range: helper.getRanges()[0],
+                    sanitizer: function(html) {
+                        var elem = document.createElement('div');
+                        var $elem = $(elem);
+                        $elem.html(html);
+
+                        var s = new Sanitize({
+                            elements:   ['a', 'b', 'br', 'img', 'p', 'i', 'span'],
+                            attributes: {
+                                a: ['href'],
+                                img: ['src', 'alt']
+                            },
+                            protocols:  {
+                                a: { href: ['http', 'https'] }
+                            }
+                        });
+
+                        $elem.html(s.clean_node(elem));
+
+                        return $elem.html();
+                    },
+                    showAllLanguages: $('#allLanguages').is(':checked')
+                });
 
             }).catch(function(e) {
                 console.error(e);
@@ -125,9 +126,7 @@
             });
 
             $('.testFixture').click(function() {
-                var ul = $(".metadataGroupOrder").children("ol");
-                var groupOrder = $.map($.makeArray(ul.children("li")), (val, i) => val.innerText).join(",");
-                loadManifest( $(this).data('json'), groupOrder );
+                loadManifest($(this).data('json'));
             });
 
         });

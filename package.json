@@ -17,7 +17,6 @@
   "homepage": "https://github.com/iiif-commons/iiif-metadata-component#readme",
   "devDependencies": {
     "base-component": "iiif-commons/base-component#v1.1.2",
-    "extensions": "edsilv/extensions#v0.2.2",
     "exjs": "BSick7/exjs#0.5.0",
     "gulp": "^3.9.1",
     "gulp-tasks": "iiif-commons/gulp-tasks#v1.0.7",
