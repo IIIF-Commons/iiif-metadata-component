@@ -32,6 +32,9 @@
         <button class="testFixture" data-json="http://bluemountain.princeton.edu/exist/restxq/iiif/collection/top">Collection</button>
 
         <button class="testFixture" data-json="https://edsilv.github.io/test-manifests/range-renderings.json">Multilingual</button>
+
+        <button class="testFixture" data-json="https://iiif-commons.github.io/iiif-av-component/examples/data/bl/sounds-tests/C465_13.json">Coalesce multiple values</button>
+        
     </div>
 
     <div class="options">
@@ -53,6 +56,10 @@
             <input id="locale3" type="radio" name="locale" value="ar"><label for="locale2">ar</label>
         </div>
 
+        <div>
+            <input type="text" name="rangeId" id="rangeId" placeholder="Range Id">
+        </div>
+
     </div>
 
     <div id="metadata" class="iiif-metadata-component">
@@ -63,6 +70,16 @@
         function getGroupOrder() {
             var ul = $(".metadataGroupOrder").children("ol");
             return $.map($.makeArray(ul.children("li")), (val, i) => val.innerText).join(",");
+        }
+
+        function getRange(helper) {
+            var rangeId = $('#rangeId').val();
+
+            if (rangeId) {
+                return helper.getRangeById(rangeId);
+            }
+
+            return helper.getRanges()[0];
         }
 
         function loadManifest(manifest) {
@@ -91,7 +108,7 @@
                     limitType: IIIFComponents.MetadataComponentOptions.LimitType.LINES,
                     //manifestDisplayOrder: "attribution, publication date, license, title",
                     //manifestExclude: "license, attribution",
-                    range: helper.getRanges()[0],
+                    range: getRange(helper),
                     sanitizer: function(html) {
                         var elem = document.createElement('div');
                         var $elem = $(elem);
