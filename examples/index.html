@@ -27,14 +27,12 @@
         <!-- <button class="testFixture" data-json="https://iiif.riksarkivet.se/arkis!F0001185/manifest">Merge source reference</button> -->
         <button class="testFixture" data-json="https://edsilv.github.io/test-manifests/all-metadata.json">All metadata</button>
         <button class="testFixture" data-json="http://tomcrane.github.io/scratch/manifests/vdc_100000004987.0x000001.json">RTL</button>
-
         <!-- resolves to http://bluemountain.princeton.edu/exist/restxq/iiif/bmtnaab_1920-02_01/manifest -->
         <button class="testFixture" data-json="http://bluemountain.princeton.edu/exist/restxq/iiif/collection/top">Collection</button>
-
         <button class="testFixture" data-json="https://edsilv.github.io/test-manifests/range-renderings.json">Multilingual</button>
-
         <button class="testFixture" data-json="https://iiif-commons.github.io/iiif-av-component/examples/data/bl/sounds-tests/C465_13.json">Coalesce multiple values</button>
-        
+        <button class="testFixture" data-json="https://iiif-commons.github.io/iiif-av-component/examples/data/bl/sounds-tests/WS0003.json">Logo</button>
+        <button class="testFixture" data-json="https://edsilv.github.io/test-manifests/nested-range-metadata.json">Nested range metadata</button>
     </div>
 
     <div class="options">
@@ -51,6 +49,7 @@
 
         <div class="locale">
             <input id="allLanguages" type="checkbox" /><label for="allLanguages">Show All Languages</label>&nbsp;
+            <input id="limitToRange" type="checkbox" /><label for="limitToRange">Limit to range</label>&nbsp;
             <input id="locale1" checked type="radio" name="locale" value="en-gb"><label for="locale1">en-GB</label>
             <input id="locale2" type="radio" name="locale" value="cy-gb"><label for="locale2">cy-GB</label>
             <input id="locale3" type="radio" name="locale" value="ar"><label for="locale2">ar</label>
@@ -79,7 +78,7 @@
                 return helper.getRangeById(rangeId);
             }
 
-            return helper.getRanges()[0];
+            return null;// helper.getRanges()[0];
         }
 
         function loadManifest(manifest) {
@@ -97,14 +96,21 @@
                     target: document.querySelector('#metadata')
                 });
 
+                var canvases = [helper.getCanvasByIndex(0)];
+
+                if (helper.getCanvasByIndex(1)) {
+                    canvases.push(helper.getCanvasByIndex(1));
+                }
+
                 component.set({
                     canvasDisplayOrder: "attribution, title",
                     metadataGroupOrder: getGroupOrder(),
-                    canvases: [helper.getCanvasByIndex(0), helper.getCanvasByIndex(1)],
+                    canvases: canvases,
                     canvasLabels: "Left page, Right page",
                     //canvasExclude: "attribution",
                     copyToClipboardEnabled: true,
                     helper: helper,
+                    limitToRange: $('#limitToRange').is(':checked'),
                     limitType: IIIFComponents.MetadataComponentOptions.LimitType.LINES,
                     //manifestDisplayOrder: "attribution, publication date, license, title",
                     //manifestExclude: "license, attribution",

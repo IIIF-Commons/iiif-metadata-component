@@ -1,4 +1,4 @@
-// iiif-metadata-component v1.1.6 https://github.com/iiif-commons/iiif-metadata-component#readme
+// iiif-metadata-component v1.1.8 https://github.com/iiif-commons/iiif-metadata-component#readme
 
 declare namespace IIIFComponents {
     class StringValue {
@@ -52,6 +52,7 @@ declare namespace IIIFComponents {
         licenseFormatter: Manifold.UriLabeller | null;
         limit: number;
         limitType: MetadataComponentOptions.LimitType;
+        limitToRange: boolean;
         manifestDisplayOrder: string;
         manifestExclude: string;
         range: Manifesto.IRange | null;

@@ -28,7 +28,7 @@ namespace IIIFComponents {
         protected _init(): boolean {
             const success: boolean = super._init();
 
-            if (!success){
+            if (!success) {
                 console.error("Component failed to initialise");
             }
 
@@ -89,6 +89,7 @@ namespace IIIFComponents {
                 licenseFormatter: null,
                 limit: 4,
                 limitType: MetadataComponentOptions.LimitType.LINES,
+                limitToRange: false,
                 manifestDisplayOrder: "",
                 manifestExclude: "",
                 range: null,
@@ -154,6 +155,21 @@ namespace IIIFComponents {
                 canvasGroups.forEach((canvasGroup: MetadataGroup, index: number) => {
                     canvasGroup.items = this._exclude(canvasGroup.items, this._readCSV(this._data.canvasExclude));
                 });
+            }
+
+            if (this._data.limitToRange) {
+
+                const newGroups: MetadataGroup[] = [];
+
+                this._metadataGroups.forEach((group: MetadataGroup, index: number) => {
+                    if (group.resource.isRange()) {
+                        newGroups.push(group);
+                    }
+                });
+
+                if (newGroups.length) {
+                    this._metadataGroups = newGroups;
+                }
             }
 
             this._render();

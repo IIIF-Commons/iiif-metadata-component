@@ -18,7 +18,7 @@ namespace IIIFComponents{
     }
     
     export interface IMetadataComponentData {
-        //aggregateValues: string;                        // csv of metadata items to merge into a single item
+        //aggregateValues: string;                      // csv of metadata items to merge into a single item
         canvasDisplayOrder: string;                     // csv of items to override display order
         metadataGroupOrder: string;                     // csv of metadata group display order, e.g. "manifest,sequence,range,canvas"
         canvases: Manifesto.ICanvas[] | null;           // which canvases to include
@@ -31,6 +31,7 @@ namespace IIIFComponents{
         licenseFormatter: Manifold.UriLabeller | null;
         limit: number;
         limitType: MetadataComponentOptions.LimitType;
+        limitToRange: boolean;                          // only show range metadata (if available)
         manifestDisplayOrder: string;                   // csv of items to override display order
         manifestExclude: string;                        // csv of items to exclude from manifest metadata display
         range: Manifesto.IRange | null;                 // which range to include

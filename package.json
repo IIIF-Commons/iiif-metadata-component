@@ -1,6 +1,6 @@
 {
   "name": "iiif-metadata-component",
-  "version": "1.1.7",
+  "version": "1.1.8",
   "description": "",
   "main": "index.js",
   "types": "./dist/iiif-metadata-component.d.ts",
@@ -25,5 +25,7 @@
     "@iiif/manifold": "1.2.17",
     "utils": "edsilv/utils#v0.2.1"
   },
-  "dependencies": {}
+  "dependencies": {
+    "natives": "^1.1.4"
+  }
 }
