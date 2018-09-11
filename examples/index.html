@@ -33,6 +33,7 @@
         <button class="testFixture" data-json="https://iiif-commons.github.io/iiif-av-component/examples/data/bl/sounds-tests/C465_13.json">Coalesce multiple values</button>
         <button class="testFixture" data-json="https://iiif-commons.github.io/iiif-av-component/examples/data/bl/sounds-tests/WS0003.json">Logo</button>
         <button class="testFixture" data-json="https://edsilv.github.io/test-manifests/nested-range-metadata.json">Nested range metadata</button>
+        <button class="testFixture" data-json="https://edsilv.github.io/test-manifests/xss.json">xss</button>
     </div>
 
     <div class="options">
@@ -127,7 +128,8 @@
                                 img: ['src', 'alt']
                             },
                             protocols:  {
-                                a: { href: ['http', 'https'] }
+                                a: { href: ['http', 'https'] },
+                                img: { src:  ['http', 'https']}
                             }
                         });
 
