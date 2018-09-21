@@ -1,4 +1,4 @@
-// iiif-metadata-component v1.1.8 https://github.com/iiif-commons/iiif-metadata-component#readme
+// iiif-metadata-component v1.1.9 https://github.com/iiif-commons/iiif-metadata-component#readme
 
 declare namespace IIIFComponents {
     class StringValue {
@@ -107,5 +107,6 @@ declare namespace IIIFComponents {
 }
 declare namespace IIIFComponents.MetadataComponent {
     class Events {
+        static IIIF_VIEWER_LINK_CLICKED: string;
     }
 }

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>iiif-metadata-component</title>
     <meta charset="utf-8">
@@ -9,10 +10,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/core-js/2.4.1/core.min.js"></script>
     <script src="https://unpkg.com/manifesto.js/dist/client/manifesto.bundle.js"></script>
     <script src="https://unpkg.com/@iiif/manifold/dist/manifold.js"></script>
+    <script src="https://unpkg.com/xss@1.0.3/dist/xss.js"></script>
     <script src="js/base-component.js"></script>
     <script src="js/iiif-metadata-component.js"></script>
     <script src="js/jquery-plugins.js"></script>
-    <script src="sanitize.js"></script>
     <script src="js/utils.js"></script>
     <style type="text/css">
         .options div {
@@ -20,6 +21,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="testFixtureSelection">
         <button class="testFixture" data-json="http://wellcomelibrary.org/iiif/b18035978/manifest">Manifest metadata</button>
@@ -30,11 +32,14 @@
         <!-- resolves to http://bluemountain.princeton.edu/exist/restxq/iiif/bmtnaab_1920-02_01/manifest -->
         <button class="testFixture" data-json="http://bluemountain.princeton.edu/exist/restxq/iiif/collection/top">Collection</button>
         <button class="testFixture" data-json="https://edsilv.github.io/test-manifests/range-renderings.json">Multilingual</button>
-        <button class="testFixture" data-json="https://iiif-commons.github.io/iiif-av-component/examples/data/bl/sounds-tests/C465_13.json">Coalesce multiple values</button>
+        <button class="testFixture" data-json="https://iiif-commons.github.io/iiif-av-component/examples/data/bl/sounds-tests/C465_13.json">Coalesce
+            multiple values</button>
         <button class="testFixture" data-json="https://iiif-commons.github.io/iiif-av-component/examples/data/bl/sounds-tests/WS0003.json">Logo</button>
-        <button class="testFixture" data-json="https://edsilv.github.io/test-manifests/nested-range-metadata.json">Nested range metadata</button>
+        <button class="testFixture" data-json="https://edsilv.github.io/test-manifests/nested-range-metadata.json">Nested
+            range metadata</button>
         <button class="testFixture" data-json="https://edsilv.github.io/test-manifests/xss.json">xss</button>
-        <button class="testFixture" data-json="https://iiif-commons.github.io/iiif-av-component/examples/data/bl/sounds-tests/loose-ends/C1685_98_P3.json">loose ends</button>
+        <button class="testFixture" data-json="https://iiif-commons.github.io/iiif-av-component/examples/data/bl/sounds-tests/loose-ends/C1685_98_P3.json">loose
+            ends</button>
     </div>
 
     <div class="options">
@@ -92,10 +97,14 @@
                 collectionIndex: 0,
                 manifestIndex: 0,
                 locale: locale
-            }).then(function(helper){
+            }).then(function (helper) {
 
                 component = new IIIFComponents.MetadataComponent({
                     target: document.querySelector('#metadata')
+                });
+
+                component.on('iiifViewerLinkClicked', function(href) {
+                    console.log('clicked: ' + href);
                 });
 
                 var canvases = [helper.getCanvasByIndex(0)];
@@ -117,45 +126,34 @@
                     //manifestDisplayOrder: "attribution, publication date, license, title",
                     //manifestExclude: "license, attribution",
                     range: getRange(helper),
-                    sanitizer: function(html) {
-                        var elem = document.createElement('div');
-                        var $elem = $(elem);
-                        $elem.html(html);
-
-                        var s = new Sanitize({
-                            elements:   ['a', 'b', 'br', 'img', 'p', 'i', 'span'],
-                            attributes: {
-                                a: ['href'],
-                                img: ['src', 'alt']
-                            },
-                            protocols:  {
-                                a: { href: ['http', 'https'] },
-                                img: { src:  ['http', 'https']}
+                    sanitizer: function (html) {
+                        return filterXSS(html, {
+                            whiteList: {
+                                a: ["href", "title", "target", "class"],
+                                br: [],
+                                img: ["src"],
+                                span: []
                             }
                         });
-
-                        $elem.html(s.clean_node(elem));
-
-                        return $elem.html();
                     },
                     showAllLanguages: $('#allLanguages').is(':checked')
                 });
 
-            }).catch(function(e) {
+            }).catch(function (e) {
                 console.error(e);
             });
         };
 
-        $(function() {
+        $(function () {
 
-            $('.reverseGroups').click(function() {
+            $('.reverseGroups').click(function () {
                 var ul = $(".metadataGroupOrder").children("ol");
                 var groupOrder = $.makeArray(ul.children("li")).reverse();
                 ul.empty();
                 $.each(groupOrder, (i, v) => ul.append(v));
             });
 
-            $('.testFixture').click(function() {
+            $('.testFixture').click(function () {
                 loadManifest($(this).data('json'));
             });
 
@@ -164,4 +162,5 @@
     </script>
 
 </body>
+
 </html>

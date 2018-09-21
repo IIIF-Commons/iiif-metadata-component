@@ -424,10 +424,20 @@ namespace IIIFComponents {
                 }
             }
 
-
             if (this._data.copyToClipboardEnabled && Utils.Clipboard.supportsCopy() && $label.text()){
                 this._addCopyButton($metadataItem, $label, $values);
             }
+
+            const that = this;
+
+            $metadataItem.on('click', 'a.iiif-viewer-link', (e) => {
+                e.preventDefault();
+
+                const $a: JQuery = $(e.target);
+                const href: string = $a.prop('href');
+
+                that.fire(MetadataComponent.Events.IIIF_VIEWER_LINK_CLICKED, href);
+            });
 
             return $metadataItem;
         }
@@ -476,7 +486,18 @@ namespace IIIFComponents {
             value = value.replace('\n', '<br>'); // replace \n with <br>
             const $value: JQuery = this._$metadataItemValueTemplate.clone();
             $value.html(value);
-            $value.targetBlank();
+
+            // loop through values looking for links with iiif-viewer-link class
+            // if found, add click handler
+            $value.find('a').each(function() {
+                
+                const $a: JQuery = $(this);
+
+                if (!$a.hasClass('iiif-viewer-link')) {
+                    $a.prop('target', '_blank');
+                }
+
+            });
 
             // rtl?
             if (locale) {
@@ -574,7 +595,7 @@ namespace IIIFComponents {
 
 namespace IIIFComponents.MetadataComponent {
     export class Events {
-        
+        static IIIF_VIEWER_LINK_CLICKED: string = 'iiifViewerLinkClicked';
     }
 }
 

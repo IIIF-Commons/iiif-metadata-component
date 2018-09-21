@@ -3,7 +3,7 @@
         "declaration": true,
         "noImplicitAny": true,
         "noImplicitReturns": true,
-        "noImplicitThis": true,
+        "noImplicitThis": false,
         "module": "es6",
         "moduleResolution": "node",
         "noUnusedLocals": true,
