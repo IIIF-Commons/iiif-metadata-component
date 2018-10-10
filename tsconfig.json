@@ -1,6 +1,7 @@
 {
     "compilerOptions": {
         "declaration": true,
+        "declarationDir": "./dist/",
         "noImplicitAny": true,
         "noImplicitReturns": true,
         "noImplicitThis": false,
@@ -12,17 +13,13 @@
         "lib": ["es6", "dom"],
         "types": [
             "@iiif/manifold",
-            "base-component",
-            "jquery-plugins",
+            "@iiif/base-component",
+            "@edsilv/jquery-plugins",
             "manifesto.js",
-            "utils"
-        ]
+            "@edsilv/utils"
+        ],
+        "outDir": "./dist/"
     },
-    "files": [
-        "src/Definitions.ts",
-        "src/StringValue.ts",
-        "src/LimitType.ts"
-    ],
     "include": [
         "src/**/*"
     ]

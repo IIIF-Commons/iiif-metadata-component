@@ -4,7 +4,68 @@ import MetadataGroup = Manifold.MetadataGroup;
 type csvvalue = string | null;
 
 namespace IIIFComponents {
-    export class MetadataComponent extends _Components.BaseComponent implements IMetadataComponent{
+
+    export interface IMetadataComponentContent {
+        attribution: string;
+        canvasHeader: string;
+        copiedToClipboard: string;
+        copyToClipboard: string;
+        description: string;
+        imageHeader: string;
+        less: string;
+        license: string;
+        logo: string;
+        manifestHeader: string;
+        more: string;
+        noData: string;
+        rangeHeader: string;
+        sequenceHeader: string;
+    }
+    
+    export interface IMetadataComponentData {
+        //aggregateValues: string;                      // csv of metadata items to merge into a single item
+        canvasDisplayOrder: string;                     // csv of items to override display order
+        metadataGroupOrder: string;                     // csv of metadata group display order, e.g. "manifest,sequence,range,canvas"
+        canvases: Manifesto.ICanvas[] | null;           // which canvases to include
+        canvasExclude: string;                          // csv of items to exclude from canvas metadata display
+        canvasLabels: string;                           // csv of labels to use for canvas groups
+        content: IMetadataComponentContent;
+        copiedMessageDuration: number;                  // the duration in ms that the copied text message appears for
+        copyToClipboardEnabled: boolean;
+        helper: Manifold.IHelper | null;
+        licenseFormatter: Manifold.UriLabeller | null;
+        limit: number;
+        limitType: LimitType;
+        limitToRange: boolean;                          // only show range metadata (if available)
+        manifestDisplayOrder: string;                   // csv of items to override display order
+        manifestExclude: string;                        // csv of items to exclude from manifest metadata display
+        range: Manifesto.IRange | null;                 // which range to include
+        rtlLanguageCodes: string;                       // csv of right-to-left language codes
+        sanitizer: (html: string) => string;            // see example for how to pass in a sanitizer
+        showAllLanguages: boolean;                      // display all translations
+    }
+
+    // todo: use string enums
+    export class StringValue {
+        public value: string = "";
+
+        constructor(value?: string) {
+            if (value){
+                this.value = value.toLowerCase();
+            }
+        }
+
+        toString() {
+            return this.value;
+        }
+    }
+
+    export class LimitType extends StringValue {
+        public static LINES = new LimitType("lines");
+        public static CHARS = new LimitType("chars");
+    }
+
+    export class MetadataComponent extends _Components.BaseComponent {
 
         public options: _Components.IBaseComponentOptions;
 
@@ -88,7 +149,7 @@ namespace IIIFComponents {
                 helper: null,
                 licenseFormatter: null,
                 limit: 4,
-                limitType: MetadataComponentOptions.LimitType.LINES,
+                limitType: LimitType.LINES,
                 limitToRange: false,
                 manifestDisplayOrder: "",
                 manifestExclude: "",
@@ -305,9 +366,9 @@ namespace IIIFComponents {
                 const $metadataGroup: JQuery = this._buildMetadataGroup(metadataGroup);
                 this._$metadataGroups.append($metadataGroup);
 
-                if (this._data.limitType === MetadataComponentOptions.LimitType.LINES) {
+                if (this._data.limitType === LimitType.LINES) {
                     $metadataGroup.find('.value').toggleExpandTextByLines(this._data.limit, this._data.content.less, this._data.content.more, () => {});
-                } else if (this._data.limitType === MetadataComponentOptions.LimitType.CHARS) {
+                } else if (this._data.limitType === LimitType.CHARS) {
                     $metadataGroup.find('.value').ellipsisHtmlFixed(this._data.limit, () => {});
                 }
             });
@@ -604,6 +665,5 @@ namespace IIIFComponents.MetadataComponent {
         g.IIIFComponents = IIIFComponents;
     } else {
         g.IIIFComponents.MetadataComponent = IIIFComponents.MetadataComponent;
-        g.IIIFComponents.MetadataComponentOptions = IIIFComponents.MetadataComponentOptions;
     }
-})(global);
+})(window);

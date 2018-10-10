@@ -4,17 +4,17 @@
 <head>
     <title>iiif-metadata-component</title>
     <meta charset="utf-8">
-    <link rel="stylesheet" type="text/css" href="css/iiif-metadata-component.css" />
+    <link rel="stylesheet" type="text/css" href="../dist/styles.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsviews/0.9.75/jsviews.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/core-js/2.4.1/core.min.js"></script>
     <script src="https://unpkg.com/manifesto.js/dist/client/manifesto.bundle.js"></script>
     <script src="https://unpkg.com/@iiif/manifold/dist/manifold.js"></script>
     <script src="https://unpkg.com/xss@1.0.3/dist/xss.js"></script>
-    <script src="js/base-component.js"></script>
-    <script src="js/iiif-metadata-component.js"></script>
-    <script src="js/jquery-plugins.js"></script>
-    <script src="js/utils.js"></script>
+    <script src="https://unpkg.com/@iiif/base-component/dist/BaseComponent.js"></script>
+    <script src="https://unpkg.com/@edsilv/utils/dist/utils.js"></script>
+    <script src="https://unpkg.com/@edsilv/jquery-plugins/dist/jquery-plugins.js"></script>
+    <script src="../dist/MetadataComponent.js"></script>
     <style type="text/css">
         .options div {
             margin-bottom: 40px;
@@ -122,7 +122,7 @@
                     copyToClipboardEnabled: true,
                     helper: helper,
                     limitToRange: $('#limitToRange').is(':checked'),
-                    limitType: IIIFComponents.MetadataComponentOptions.LimitType.LINES,
+                    limitType: IIIFComponents.LimitType.LINES,
                     //manifestDisplayOrder: "attribution, publication date, license, title",
                     //manifestExclude: "license, attribution",
                     range: getRange(helper),
