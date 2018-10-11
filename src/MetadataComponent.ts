@@ -452,7 +452,7 @@ namespace IIIFComponents {
                 if (this._data.showAllLanguages && item.value && item.value.length > 1) {
                     // display all values in each locale
                     for (let i = 0; i < item.value.length; i++) {
-                        const translation: Manifesto.Translation = item.value[i];
+                        const translation: Manifesto.Language = item.value[i];
                         $value = this._buildMetadataItemValue(translation.value, translation.locale);
                         $values.append($value);
                     }
@@ -463,7 +463,7 @@ namespace IIIFComponents {
 
                     // display all values in the item's locale
                     for (let i = 0; i < item.value.length; i++) {
-                        const translation: Manifesto.Translation = item.value[i];
+                        const translation: Manifesto.Language = item.value[i];
 
                         if (valueLocale.toLowerCase() === translation.locale.toLowerCase()) {
                             valueFound = true;
@@ -474,7 +474,7 @@ namespace IIIFComponents {
 
                     // if no values were found in the current locale, default to the first.
                     if (!valueFound) {
-                        const translation: Manifesto.Translation = item.value[0];
+                        const translation: Manifesto.Language = item.value[0];
 
                         if (translation) {
                             $value = this._buildMetadataItemValue(translation.value, translation.locale);
