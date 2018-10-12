@@ -1,6 +1,6 @@
 {
   "name": "@iiif/iiif-metadata-component",
-  "version": "1.1.12",
+  "version": "1.1.13",
   "description": "",
   "main": "./dist/MetadataComponent.js",
   "types": "./dist/MetadataComponent.d.ts",

@@ -24,25 +24,25 @@ namespace IIIFComponents {
     
     export interface IMetadataComponentData {
         //aggregateValues: string;                      // csv of metadata items to merge into a single item
-        canvasDisplayOrder: string;                     // csv of items to override display order
-        metadataGroupOrder: string;                     // csv of metadata group display order, e.g. "manifest,sequence,range,canvas"
-        canvases: Manifesto.ICanvas[] | null;           // which canvases to include
-        canvasExclude: string;                          // csv of items to exclude from canvas metadata display
-        canvasLabels: string;                           // csv of labels to use for canvas groups
-        content: IMetadataComponentContent;
-        copiedMessageDuration: number;                  // the duration in ms that the copied text message appears for
-        copyToClipboardEnabled: boolean;
-        helper: Manifold.IHelper | null;
-        licenseFormatter: Manifold.UriLabeller | null;
-        limit: number;
-        limitType: LimitType;
-        limitToRange: boolean;                          // only show range metadata (if available)
-        manifestDisplayOrder: string;                   // csv of items to override display order
-        manifestExclude: string;                        // csv of items to exclude from manifest metadata display
-        range: Manifesto.IRange | null;                 // which range to include
-        rtlLanguageCodes: string;                       // csv of right-to-left language codes
-        sanitizer: (html: string) => string;            // see example for how to pass in a sanitizer
-        showAllLanguages: boolean;                      // display all translations
+        canvasDisplayOrder?: string;                     // csv of items to override display order
+        metadataGroupOrder?: string;                     // csv of metadata group display order, e.g. "manifest,sequence,range,canvas"
+        canvases?: Manifesto.ICanvas[] | null;           // which canvases to include
+        canvasExclude?: string;                          // csv of items to exclude from canvas metadata display
+        canvasLabels?: string;                           // csv of labels to use for canvas groups
+        content?: IMetadataComponentContent;
+        copiedMessageDuration?: number;                  // the duration in ms that the copied text message appears for
+        copyToClipboardEnabled?: boolean;
+        helper?: Manifold.IHelper | null;
+        licenseFormatter?: Manifold.UriLabeller | null;
+        limit?: number;
+        limitType?: LimitType;
+        limitToRange?: boolean;                          // only show range metadata (if available)
+        manifestDisplayOrder?: string;                   // csv of items to override display order
+        manifestExclude?: string;                        // csv of items to exclude from manifest metadata display
+        range?: Manifesto.IRange | null;                 // which range to include
+        rtlLanguageCodes?: string;                       // csv of right-to-left language codes
+        sanitizer?: (html: string) => string;            // see example for how to pass in a sanitizer
+        showAllLanguages?: boolean;                      // display all translations
     }
 
     // todo: use string enums
@@ -81,7 +81,7 @@ namespace IIIFComponents {
 
         constructor(options: _Components.IBaseComponentOptions) {
             super(options);
-            
+            this._data = this.options.data;
             this._init();
             this._resize();
         }
@@ -107,14 +107,14 @@ namespace IIIFComponents {
 
             this._$metadataItemURIValueTemplate = $('<a class="value" href="" target="_blank"></a>');
 
-            this._$copyTextTemplate =       $('<div class="copyText" alt="' + this._data.content.copyToClipboard  + '" title="' + this._data.content.copyToClipboard + '">\
-                                                   <div class="copiedText">' + this._data.content.copiedToClipboard + ' </div>\
+            this._$copyTextTemplate =       $('<div class="copyText" alt="' + this.options.data.content.copyToClipboard  + '" title="' + this.options.data.content.copyToClipboard + '">\
+                                                   <div class="copiedText">' + this.options.data.content.copiedToClipboard + ' </div>\
                                                </div>');
 
             this._$metadataGroups = $('<div class="groups"></div>');
             this._$element.append(this._$metadataGroups);
 
-            this._$noData = $('<div class="noData">' + this._data.content.noData + '</div>');
+            this._$noData = $('<div class="noData">' + this.options.data.content.noData + '</div>');
             this._$element.append(this._$noData);
 
             return success;
@@ -170,7 +170,7 @@ namespace IIIFComponents {
 
         public set(data: IMetadataComponentData): void {
 
-            $.extend(this._data, data);
+            this._data = Object.assign(this._data, data);
 
             if (!this._data || !this._data.helper) {
                 return;
@@ -193,7 +193,7 @@ namespace IIIFComponents {
                 const canvasGroups: MetadataGroup[] = this._getCanvasGroups();
 
                 canvasGroups.forEach((canvasGroup: MetadataGroup, index: number) => {
-                    canvasGroup.items = this._sortItems(canvasGroup.items, this._readCSV(this._data.canvasDisplayOrder));
+                    canvasGroup.items = this._sortItems(canvasGroup.items, this._readCSV(<string>this._data.canvasDisplayOrder));
                 });
             }
 
@@ -214,7 +214,7 @@ namespace IIIFComponents {
                 const canvasGroups: MetadataGroup[] = this._getCanvasGroups();
 
                 canvasGroups.forEach((canvasGroup: MetadataGroup, index: number) => {
-                    canvasGroup.items = this._exclude(canvasGroup.items, this._readCSV(this._data.canvasExclude));
+                    canvasGroup.items = this._exclude(canvasGroup.items, this._readCSV(<string>this._data.canvasExclude));
                 });
             }
 
@@ -366,10 +366,12 @@ namespace IIIFComponents {
                 const $metadataGroup: JQuery = this._buildMetadataGroup(metadataGroup);
                 this._$metadataGroups.append($metadataGroup);
 
-                if (this._data.limitType === LimitType.LINES) {
-                    $metadataGroup.find('.value').toggleExpandTextByLines(this._data.limit, this._data.content.less, this._data.content.more, () => {});
-                } else if (this._data.limitType === LimitType.CHARS) {
-                    $metadataGroup.find('.value').ellipsisHtmlFixed(this._data.limit, () => {});
+                if (this._data.limit && this._data.content) {
+                    if (this._data.limitType === LimitType.LINES) {
+                        $metadataGroup.find('.value').toggleExpandTextByLines(this._data.limit, this._data.content.less, this._data.content.more, () => {});
+                    } else if (this._data.limitType === LimitType.CHARS) {
+                        $metadataGroup.find('.value').ellipsisHtmlFixed(this._data.limit, () => {});
+                    }
                 }
             });
         }
@@ -378,18 +380,32 @@ namespace IIIFComponents {
             const $metadataGroup: JQuery = this._$metadataGroupTemplate.clone();
             const $header: JQuery = $metadataGroup.find('>.header');
 
-            // add group header
-            if (metadataGroup.resource.isManifest() && this._data.content.manifestHeader) {
-                $header.html(this._sanitize(this._data.content.manifestHeader));
-            } else if (metadataGroup.resource.isSequence() && this._data.content.sequenceHeader) {
-                $header.html(this._sanitize(this._data.content.sequenceHeader));
-            } else if (metadataGroup.resource.isRange() && this._data.content.rangeHeader) {
-                $header.html(this._sanitize(this._data.content.rangeHeader));
-            } else if (metadataGroup.resource.isCanvas() && (metadataGroup.label || this._data.content.canvasHeader)) {
-                const header: string = metadataGroup.label || this._data.content.canvasHeader;
-                $header.html(this._sanitize(header));
-            } else if (metadataGroup.resource.isAnnotation() && this._data.content.imageHeader) {
-                $header.html(this._sanitize(this._data.content.imageHeader));
+            if (this._data.content) {
+                // add group header
+                if (metadataGroup.resource.isManifest() && this._data.content.manifestHeader) {
+                    const text: string | null = this._sanitize(this._data.content.manifestHeader);
+                    if (text) {
+                        $header.html(text);
+                    }                    
+                } else if (metadataGroup.resource.isSequence() && this._data.content.sequenceHeader) {
+                    const text: string | null = this._sanitize(this._data.content.sequenceHeader);
+                    if (text) {
+                        $header.html(text);
+                    }  
+                } else if (metadataGroup.resource.isRange() && this._data.content.rangeHeader) {
+                    const text: string | null = this._sanitize(this._data.content.rangeHeader);
+                    if (text) {
+                        $header.html(text);
+                    }
+                } else if (metadataGroup.resource.isCanvas() && (metadataGroup.label || this._data.content.canvasHeader)) {
+                    const header: string = metadataGroup.label || this._data.content.canvasHeader;
+                    $header.html(<string>this._sanitize(header));                    
+                } else if (metadataGroup.resource.isAnnotation() && this._data.content.imageHeader) {
+                    const text: string | null = this._sanitize(this._data.content.imageHeader)
+                    if (text) {
+                        $header.html(text);
+                    }
+                }
             }
 
             if (!$header.text()) {
@@ -416,7 +432,7 @@ namespace IIIFComponents {
             let label: string | null = originalLabel;
             const urlPattern = new RegExp("/\w+:(\/?\/?)[^\s]+/gm", "i");
 
-            if (label && item.isRootLevel) {
+            if (this._data.content && label && item.isRootLevel) {
                 switch (label.toLowerCase()) {
                     case "attribution":
                         label = this._data.content.attribution;
@@ -543,7 +559,7 @@ namespace IIIFComponents {
         }
 
         private _buildMetadataItemValue(value: string, locale: string): JQuery {
-            value = this._sanitize(value);
+            value = <string>this._sanitize(value);
             value = value.replace('\n', '<br>'); // replace \n with <br>
             const $value: JQuery = this._$metadataItemValueTemplate.clone();
             $value.html(value);
@@ -569,7 +585,7 @@ namespace IIIFComponents {
         }
 
         private _buildMetadataItemURIValue(value: string): JQuery {
-            value = this._sanitize(value);
+            value = <string>this._sanitize(value);
             const $value: JQuery = this._$metadataItemURIValueTemplate.clone();
             $value.prop('href', value);
             $value.text(value);
@@ -578,7 +594,7 @@ namespace IIIFComponents {
 
         private _addReadingDirection($elem: JQuery, locale: string) {
             locale = Manifesto.Utils.getInexactLocale(locale);
-            const rtlLanguages: csvvalue[] = this._readCSV(this._data.rtlLanguageCodes);
+            const rtlLanguages: csvvalue[] = this._readCSV(<string>this._data.rtlLanguageCodes);
             const match: boolean = rtlLanguages.en().where(x => x === locale).toArray().length > 0;
 
             if (match) {
@@ -644,8 +660,12 @@ namespace IIIFComponents {
             return csv;
         }
         
-        private _sanitize(html: string) {
-            return this._data.sanitizer(html);
+        private _sanitize(html: string): string | null {
+            if (this._data.sanitizer) {
+                return this._data.sanitizer(html);
+            }
+            
+            return null;
         }
 
         protected _resize(): void {
