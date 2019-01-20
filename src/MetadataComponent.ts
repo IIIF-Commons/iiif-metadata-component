@@ -1,9 +1,12 @@
-import MetadataItem = Manifold.IMetadataItem;
-import MetadataGroup = Manifold.MetadataGroup;
-
-type csvvalue = string | null;
-
 namespace IIIFComponents {
+
+    type Canvas = manifesto.Canvas;
+    type csvvalue = string | null;
+    type Language = manifesto.Language;
+    type MetadataGroup = manifold.MetadataGroup;
+    type MetadataItem = manifold.IMetadataItem;
+    type MetadataOptions = manifold.MetadataOptions;
+    type Range = manifesto.Range;
 
     export interface IMetadataComponentContent {
         attribution: string;
@@ -26,43 +29,28 @@ namespace IIIFComponents {
         //aggregateValues: string;                      // csv of metadata items to merge into a single item
         canvasDisplayOrder?: string;                     // csv of items to override display order
         metadataGroupOrder?: string;                     // csv of metadata group display order, e.g. "manifest,sequence,range,canvas"
-        canvases?: Manifesto.ICanvas[] | null;           // which canvases to include
+        canvases?: Canvas[] | null;           // which canvases to include
         canvasExclude?: string;                          // csv of items to exclude from canvas metadata display
         canvasLabels?: string;                           // csv of labels to use for canvas groups
         content?: IMetadataComponentContent;
         copiedMessageDuration?: number;                  // the duration in ms that the copied text message appears for
         copyToClipboardEnabled?: boolean;
-        helper?: Manifold.IHelper | null;
-        licenseFormatter?: Manifold.UriLabeller | null;
+        helper?: manifold.Helper | null;
+        licenseFormatter?: manifold.UriLabeller | null;
         limit?: number;
         limitType?: LimitType;
         limitToRange?: boolean;                          // only show range metadata (if available)
         manifestDisplayOrder?: string;                   // csv of items to override display order
         manifestExclude?: string;                        // csv of items to exclude from manifest metadata display
-        range?: Manifesto.IRange | null;                 // which range to include
+        range?: Range | null;                 // which range to include
         rtlLanguageCodes?: string;                       // csv of right-to-left language codes
         sanitizer?: (html: string) => string;            // see example for how to pass in a sanitizer
         showAllLanguages?: boolean;                      // display all translations
     }
 
-    // todo: use string enums
-    export class StringValue {
-        public value: string = "";
-
-        constructor(value?: string) {
-            if (value){
-                this.value = value.toLowerCase();
-            }
-        }
-
-        toString() {
-            return this.value;
-        }
-    }
-
-    export class LimitType extends StringValue {
-        public static LINES = new LimitType("lines");
-        public static CHARS = new LimitType("chars");
+    export enum LimitType {
+        LINES = "lines",
+        CHARS = "chars"
     }
 
     export class MetadataComponent extends _Components.BaseComponent {
@@ -161,11 +149,11 @@ namespace IIIFComponents {
         }
 
         private _getManifestGroup(): MetadataGroup {
-            return this._metadataGroups.en().where(x => x.resource.isManifest()).first();
+            return this._metadataGroups.filter(x => x.resource.isManifest())[0];
         }
 
         private _getCanvasGroups(): MetadataGroup[] {
-            return this._metadataGroups.en().where(x => x.resource.isCanvas()).toArray();
+            return this._metadataGroups.filter(x => x.resource.isCanvas());
         }
 
         public set(data: IMetadataComponentData): void {
@@ -176,7 +164,7 @@ namespace IIIFComponents {
                 return;
             }
 
-            const options: Manifold.MetadataOptions = <Manifold.MetadataOptions>{
+            const options: MetadataOptions = <MetadataOptions>{
                 canvases: this._data.canvases,
                 licenseFormatter: this._data.licenseFormatter,
                 range: this._data.range
@@ -242,7 +230,7 @@ namespace IIIFComponents {
             let unsorted: MetadataItem[] = items.slice(0);
 
             displayOrder.forEach((item: string, index: number) => {
-                const match: MetadataItem = unsorted.en().where((x => this._normalise(x.getLabel()) === item)).first();
+                const match: MetadataItem = unsorted.filter((x => this._normalise(x.getLabel()) === item))[0];
                 if (match){
                     sorted.push(match);
 
@@ -267,7 +255,7 @@ namespace IIIFComponents {
             let unsorted: MetadataGroup[] = groups.slice(0);
 
             metadataGroupOrder.forEach((group: string, index: number) => {
-                const match: MetadataGroup = unsorted.en().where(x => x.resource.constructor.name.toLowerCase() == group).first();
+                const match: MetadataGroup = unsorted.filter(x => x.resource.getIIIFResourceType().toLowerCase() == group.toLowerCase())[0];
                 if (match) {
                     sorted.push(match);
                     const index: number = unsorted.indexOf(match);
@@ -289,7 +277,7 @@ namespace IIIFComponents {
         private _exclude(items: MetadataItem[], excludeConfig: csvvalue[]): MetadataItem[] {
 
             excludeConfig.forEach((item: string, index: number) => {
-                const match: MetadataItem = items.en().where((x => this._normalise(x.getLabel()) === item)).first();
+                const match: MetadataItem = items.filter((x => this._normalise(x.getLabel()) === item))[0];
                 if (match) {
                     const index: number = items.indexOf(match);
                     if (index > -1) {
@@ -329,7 +317,7 @@ namespace IIIFComponents {
         //                 value = this._normalise(value);
 
         //                 if (this._normalise(canvasItem.label) === value) {
-        //                     var manifestItem = manifestMetadata.en().where(x => this._normalise(x.label) === value).first();
+        //                     var manifestItem = manifestMetadata.filter(x => this._normalise(x.label) === value)[0];
 
         //                     if (manifestItem) {
         //                         canvasItem.value = manifestItem.value + canvasItem.value;
@@ -468,7 +456,7 @@ namespace IIIFComponents {
                 if (this._data.showAllLanguages && item.value && item.value.length > 1) {
                     // display all values in each locale
                     for (let i = 0; i < item.value.length; i++) {
-                        const translation: Manifesto.Language = item.value[i];
+                        const translation: Language = item.value[i];
                         $value = this._buildMetadataItemValue(translation.value, translation.locale);
                         $values.append($value);
                     }
@@ -479,7 +467,7 @@ namespace IIIFComponents {
 
                     // display all values in the item's locale
                     for (let i = 0; i < item.value.length; i++) {
-                        const translation: Manifesto.Language = item.value[i];
+                        const translation: Language = item.value[i];
 
                         if (valueLocale.toLowerCase() === translation.locale.toLowerCase()) {
                             valueFound = true;
@@ -490,7 +478,7 @@ namespace IIIFComponents {
 
                     // if no values were found in the current locale, default to the first.
                     if (!valueFound) {
-                        const translation: Manifesto.Language = item.value[0];
+                        const translation: Language = item.value[0];
 
                         if (translation) {
                             $value = this._buildMetadataItemValue(translation.value, translation.locale);
@@ -593,9 +581,9 @@ namespace IIIFComponents {
         }
 
         private _addReadingDirection($elem: JQuery, locale: string) {
-            locale = Manifesto.Utils.getInexactLocale(locale);
+            locale = manifesto.Utils.getInexactLocale(locale);
             const rtlLanguages: csvvalue[] = this._readCSV(<string>this._data.rtlLanguageCodes);
-            const match: boolean = rtlLanguages.en().where(x => x === locale).toArray().length > 0;
+            const match: boolean = rtlLanguages.filter(x => x === locale).length > 0;
 
             if (match) {
                 $elem.prop('dir', 'rtl');
