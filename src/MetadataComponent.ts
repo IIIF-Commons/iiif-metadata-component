@@ -1,12 +1,6 @@
 namespace IIIFComponents {
 
-    type Canvas = manifesto.Canvas;
     type csvvalue = string | null;
-    type Language = manifesto.Language;
-    type MetadataGroup = manifold.MetadataGroup;
-    type MetadataItem = manifold.IMetadataItem;
-    type MetadataOptions = manifold.MetadataOptions;
-    type Range = manifesto.Range;
 
     export interface IMetadataComponentContent {
         attribution: string;
@@ -29,7 +23,7 @@ namespace IIIFComponents {
         //aggregateValues: string;                      // csv of metadata items to merge into a single item
         canvasDisplayOrder?: string;                     // csv of items to override display order
         metadataGroupOrder?: string;                     // csv of metadata group display order, e.g. "manifest,sequence,range,canvas"
-        canvases?: Canvas[] | null;           // which canvases to include
+        canvases?: manifesto.Canvas[] | null;           // which canvases to include
         canvasExclude?: string;                          // csv of items to exclude from canvas metadata display
         canvasLabels?: string;                           // csv of labels to use for canvas groups
         content?: IMetadataComponentContent;
@@ -42,7 +36,7 @@ namespace IIIFComponents {
         limitToRange?: boolean;                          // only show range metadata (if available)
         manifestDisplayOrder?: string;                   // csv of items to override display order
         manifestExclude?: string;                        // csv of items to exclude from manifest metadata display
-        range?: Range | null;                 // which range to include
+        range?: manifesto.Range | null;                 // which range to include
         rtlLanguageCodes?: string;                       // csv of right-to-left language codes
         sanitizer?: (html: string) => string;            // see example for how to pass in a sanitizer
         showAllLanguages?: boolean;                      // display all translations
@@ -65,7 +59,7 @@ namespace IIIFComponents {
         private _$metadataItemValueTemplate: JQuery;
         private _$noData: JQuery;
         private _data: IMetadataComponentData = this.data();
-        private _metadataGroups: MetadataGroup[];
+        private _metadataGroups: manifold.MetadataGroup[];
 
         constructor(options: _Components.IBaseComponentOptions) {
             super(options);
@@ -148,11 +142,11 @@ namespace IIIFComponents {
             }
         }
 
-        private _getManifestGroup(): MetadataGroup {
+        private _getManifestGroup(): manifold.MetadataGroup {
             return this._metadataGroups.filter(x => x.resource.isManifest())[0];
         }
 
-        private _getCanvasGroups(): MetadataGroup[] {
+        private _getCanvasGroups(): manifold.MetadataGroup[] {
             return this._metadataGroups.filter(x => x.resource.isCanvas());
         }
 
@@ -164,7 +158,7 @@ namespace IIIFComponents {
                 return;
             }
 
-            const options: MetadataOptions = <MetadataOptions>{
+            const options: manifold.MetadataOptions = <manifold.MetadataOptions>{
                 canvases: this._data.canvases,
                 licenseFormatter: this._data.licenseFormatter,
                 range: this._data.range
@@ -173,14 +167,14 @@ namespace IIIFComponents {
             this._metadataGroups = this._data.helper.getMetadata(options);
 
             if (this._data.manifestDisplayOrder) {
-                const manifestGroup: MetadataGroup = this._getManifestGroup();
+                const manifestGroup: manifold.MetadataGroup = this._getManifestGroup();
                 manifestGroup.items = this._sortItems(manifestGroup.items, this._readCSV(this._data.manifestDisplayOrder));
             }
 
             if (this._data.canvasDisplayOrder) {
-                const canvasGroups: MetadataGroup[] = this._getCanvasGroups();
+                const canvasGroups: manifold.MetadataGroup[] = this._getCanvasGroups();
 
-                canvasGroups.forEach((canvasGroup: MetadataGroup, index: number) => {
+                canvasGroups.forEach((canvasGroup: manifold.MetadataGroup, index: number) => {
                     canvasGroup.items = this._sortItems(canvasGroup.items, this._readCSV(<string>this._data.canvasDisplayOrder));
                 });
             }
@@ -194,23 +188,23 @@ namespace IIIFComponents {
             }
 
             if (this._data.manifestExclude) {
-                const manifestGroup: MetadataGroup = this._getManifestGroup();
+                const manifestGroup: manifold.MetadataGroup = this._getManifestGroup();
                 manifestGroup.items = this._exclude(manifestGroup.items, this._readCSV(this._data.manifestExclude));
             }
 
             if (this._data.canvasExclude) {
-                const canvasGroups: MetadataGroup[] = this._getCanvasGroups();
+                const canvasGroups: manifold.MetadataGroup[] = this._getCanvasGroups();
 
-                canvasGroups.forEach((canvasGroup: MetadataGroup, index: number) => {
+                canvasGroups.forEach((canvasGroup: manifold.MetadataGroup, index: number) => {
                     canvasGroup.items = this._exclude(canvasGroup.items, this._readCSV(<string>this._data.canvasExclude));
                 });
             }
 
             if (this._data.limitToRange) {
 
-                const newGroups: MetadataGroup[] = [];
+                const newGroups: manifold.MetadataGroup[] = [];
 
-                this._metadataGroups.forEach((group: MetadataGroup, index: number) => {
+                this._metadataGroups.forEach((group: manifold.MetadataGroup, index: number) => {
                     if (group.resource.isRange()) {
                         newGroups.push(group);
                     }
@@ -224,13 +218,13 @@ namespace IIIFComponents {
             this._render();
         }
 
-        private _sortItems(items: MetadataItem[], displayOrder: csvvalue[]): MetadataItem[] {
+        private _sortItems(items: manifold.IMetadataItem[], displayOrder: csvvalue[]): manifold.IMetadataItem[] {
 
-            let sorted: MetadataItem[] = [];
-            let unsorted: MetadataItem[] = items.slice(0);
+            let sorted: manifold.IMetadataItem[] = [];
+            let unsorted: manifold.IMetadataItem[] = items.slice(0);
 
             displayOrder.forEach((item: string, index: number) => {
-                const match: MetadataItem = unsorted.filter((x => this._normalise(x.getLabel()) === item))[0];
+                const match: manifold.IMetadataItem = unsorted.filter((x => this._normalise(x.getLabel()) === item))[0];
                 if (match){
                     sorted.push(match);
 
@@ -242,20 +236,20 @@ namespace IIIFComponents {
             });
 
             // add remaining items that were not in the displayOrder.
-            unsorted.forEach((item: MetadataItem, index: number) => {
+            unsorted.forEach((item: manifold.IMetadataItem, index: number) => {
                 sorted.push(item);
             });
 
             return sorted;
         }
 
-        private _sortGroups(groups: MetadataGroup[], metadataGroupOrder: csvvalue[]): MetadataGroup[] {
+        private _sortGroups(groups: manifold.MetadataGroup[], metadataGroupOrder: csvvalue[]): manifold.MetadataGroup[] {
 
-            let sorted: MetadataGroup[] = [];
-            let unsorted: MetadataGroup[] = groups.slice(0);
+            let sorted: manifold.MetadataGroup[] = [];
+            let unsorted: manifold.MetadataGroup[] = groups.slice(0);
 
             metadataGroupOrder.forEach((group: string, index: number) => {
-                const match: MetadataGroup = unsorted.filter(x => x.resource.getIIIFResourceType().toLowerCase() == group.toLowerCase())[0];
+                const match: manifold.MetadataGroup = unsorted.filter(x => x.resource.getIIIFResourceType().toLowerCase() == group.toLowerCase())[0];
                 if (match) {
                     sorted.push(match);
                     const index: number = unsorted.indexOf(match);
@@ -267,17 +261,17 @@ namespace IIIFComponents {
             return sorted;
         }
 
-        private _label(groups: MetadataGroup[], labels: csvvalue[]): void {
+        private _label(groups: manifold.MetadataGroup[], labels: csvvalue[]): void {
 
-            groups.forEach((group: MetadataGroup, index: number) => {
+            groups.forEach((group: manifold.MetadataGroup, index: number) => {
                 group.label = <string>labels[index];
             });
         }
 
-        private _exclude(items: MetadataItem[], excludeConfig: csvvalue[]): MetadataItem[] {
+        private _exclude(items: manifold.IMetadataItem[], excludeConfig: csvvalue[]): manifold.IMetadataItem[] {
 
             excludeConfig.forEach((item: string, index: number) => {
-                const match: MetadataItem = items.filter((x => this._normalise(x.getLabel()) === item))[0];
+                const match: manifold.IMetadataItem = items.filter((x => this._normalise(x.getLabel()) === item))[0];
                 if (match) {
                     const index: number = items.indexOf(match);
                     if (index > -1) {
@@ -350,7 +344,7 @@ namespace IIIFComponents {
 
             this._$metadataGroups.empty();
 
-            this._metadataGroups.forEach((metadataGroup: MetadataGroup, index: number) => {
+            this._metadataGroups.forEach((metadataGroup: manifold.MetadataGroup, index: number) => {
                 const $metadataGroup: JQuery = this._buildMetadataGroup(metadataGroup);
                 this._$metadataGroups.append($metadataGroup);
 
@@ -364,7 +358,7 @@ namespace IIIFComponents {
             });
         }
 
-        private _buildMetadataGroup(metadataGroup: MetadataGroup): JQuery {
+        private _buildMetadataGroup(metadataGroup: manifold.MetadataGroup): JQuery {
             const $metadataGroup: JQuery = this._$metadataGroupTemplate.clone();
             const $header: JQuery = $metadataGroup.find('>.header');
 
@@ -403,7 +397,7 @@ namespace IIIFComponents {
             const $items: JQuery = $metadataGroup.find('.items');
 
             for (let i = 0; i < metadataGroup.items.length; i++) {
-                const item: MetadataItem = metadataGroup.items[i];
+                const item: manifold.IMetadataItem = metadataGroup.items[i];
                 const $metadataItem: JQuery = this._buildMetadataItem(item);
                 $items.append($metadataItem);
             }
@@ -411,7 +405,7 @@ namespace IIIFComponents {
             return $metadataGroup;
         }
 
-        private _buildMetadataItem(item: MetadataItem): JQuery {
+        private _buildMetadataItem(item: manifold.IMetadataItem): JQuery {
             const $metadataItem: JQuery = this._$metadataItemTemplate.clone();
             const $label: JQuery = $metadataItem.find('.label');
             const $values: JQuery = $metadataItem.find('.values');
@@ -456,7 +450,7 @@ namespace IIIFComponents {
                 if (this._data.showAllLanguages && item.value && item.value.length > 1) {
                     // display all values in each locale
                     for (let i = 0; i < item.value.length; i++) {
-                        const translation: Language = item.value[i];
+                        const translation: manifesto.Language = item.value[i];
                         $value = this._buildMetadataItemValue(translation.value, translation.locale);
                         $values.append($value);
                     }
@@ -467,7 +461,7 @@ namespace IIIFComponents {
 
                     // display all values in the item's locale
                     for (let i = 0; i < item.value.length; i++) {
-                        const translation: Language = item.value[i];
+                        const translation: manifesto.Language = item.value[i];
 
                         if (valueLocale.toLowerCase() === translation.locale.toLowerCase()) {
                             valueFound = true;
@@ -478,7 +472,7 @@ namespace IIIFComponents {
 
                     // if no values were found in the current locale, default to the first.
                     if (!valueFound) {
-                        const translation: Language = item.value[0];
+                        const translation: manifesto.Language = item.value[0];
 
                         if (translation) {
                             $value = this._buildMetadataItemValue(translation.value, translation.locale);
@@ -507,7 +501,7 @@ namespace IIIFComponents {
             return $metadataItem;
         }
 
-        private _getLabelLocale(item: MetadataItem): string {
+        private _getLabelLocale(item: manifold.IMetadataItem): string {
             if (!this._data || !this._data.helper) {
                 return '';
             }
@@ -526,7 +520,7 @@ namespace IIIFComponents {
             return defaultLocale;
         }
 
-        private _getValueLocale(item: MetadataItem): string {
+        private _getValueLocale(item: manifold.IMetadataItem): string {
 
             if (!this._data || !this._data.helper) {
                 return '';
