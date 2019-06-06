@@ -9,7 +9,7 @@
     "build-ts": "npx tsc",
     "minify-js": "npx uglify-js ./dist/MetadataComponent.js > ./dist/MetadataComponent.min.js",
     "build-css": "npx lessc ./src/css/styles.less > ./dist/styles.css",
-    "build": "npm run clean && npm run build-ts && npm run minify-js && npm run build-css",
+    "build": "npm run clean && npm run build-ts && npm run build-css",
     "start": "npx serve"
   },
   "repository": {
@@ -33,8 +33,8 @@
     "@edsilv/jquery-plugins": "1.0.3",
     "@edsilv/utils": "^0.2.2",
     "@iiif/base-component": "1.1.3",
-    "@iiif/manifold": "2.0.0-pre.10",
+    "@iiif/manifold": "2.0.0-pre.11",
     "@types/jquery": "2.0.34",
-    "manifesto.js": "4.0.0-pre.6"
+    "manifesto.js": "4.0.0-pre.7"
   }
 }
