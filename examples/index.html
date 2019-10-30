@@ -4,18 +4,16 @@
 <head>
     <title>iiif-metadata-component</title>
     <meta charset="utf-8">
-    <link rel="stylesheet" type="text/css" href="../dist/styles.css" />
+    <link rel="stylesheet" type="text/css" href="../dist-css/styles.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsviews/0.9.75/jsviews.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/core-js/2.4.1/core.min.js"></script>
-    <script src="https://unpkg.com/@iiif/vocabulary@1.0.8/dist-umd/vocabulary.js"></script>
-    <script src="https://unpkg.com/manifesto.js@4.0.0-pre.8/dist-umd/manifesto.js"></script>
-    <script src="https://unpkg.com/@iiif/manifold@2.0.0-pre.14/dist-umd/manifold.js"></script>
+    <script src="https://unpkg.com/manifesto.js@4.0.0-pre.19/dist-umd/manifesto.js"></script>
+    <script src="https://unpkg.com/@iiif/manifold@2.0.0-pre.21/dist-umd/manifold.js"></script>
     <script src="https://unpkg.com/xss@1.0.3/dist/xss.js"></script>
-    <script src="https://unpkg.com/@iiif/base-component/dist/BaseComponent.js"></script>
-    <script src="https://unpkg.com/@edsilv/utils/dist/Utils.js"></script>
-    <script src="https://unpkg.com/@edsilv/jquery-plugins/dist/jquery-plugins.js"></script>
-    <script src="../dist/MetadataComponent.js"></script>
+    <script src="https://unpkg.com/@edsilv/utils@1.0.2/dist-umd/utils.js"></script>
+    <script src="https://unpkg.com/@edsilv/jquery-plugins@1.0.7/dist/jquery-plugins.js"></script>
+    <script src="../dist-umd/IIIFMetadataComponent.js"></script>
     <style type="text/css">
         .options div {
             margin-bottom: 40px;
@@ -91,6 +89,10 @@
 
         function loadManifest(manifest) {
 
+            component = new IIIFMetadataComponent.MetadataComponent({
+                target: document.querySelector('#metadata')
+            });
+
             var locale = $("input:radio[name='locale']:checked").val();
 
             manifold.loadManifest({
@@ -99,10 +101,6 @@
                 manifestIndex: 0,
                 locale: locale
             }).then(function (helper) {
-
-                component = new IIIFComponents.MetadataComponent({
-                    target: document.querySelector('#metadata')
-                });
 
                 component.on('iiifViewerLinkClicked', function(href) {
                     console.log('clicked: ' + href);
@@ -123,7 +121,7 @@
                     copyToClipboardEnabled: true,
                     helper: helper,
                     limitToRange: $('#limitToRange').is(':checked'),
-                    limitType: IIIFComponents.LimitType.LINES,
+                    limitType: IIIFMetadataComponent.LimitType.LINES,
                     //manifestDisplayOrder: "attribution, publication date, license, title",
                     //manifestExclude: "license, attribution",
                     range: getRange(helper),
