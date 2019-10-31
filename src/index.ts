@@ -77,23 +77,23 @@ export class MetadataComponent extends BaseComponent {
     this._resize();
   }
 
-  protected async _init(): Promise<boolean> {
-    await super._init();
+  protected _init(): boolean {
+    super._init();
 
-    this._$element = $(this._el);
+    this._$element = $(this.el);
 
     this._$metadataGroupTemplate = $(
       '<div class="group">\
-                                                <div class="header"></div>\
-                                                <div class="items"></div>\
-                                            </div>'
+          <div class="header"></div>\
+          <div class="items"></div>\
+      </div>'
     );
 
     this._$metadataItemTemplate = $(
       '<div class="item">\
-                                                <div class="label"></div>\
-                                                <div class="values"></div>\
-                                            </div>'
+          <div class="label"></div>\
+          <div class="values"></div>\
+      </div>'
     );
 
     this._$metadataItemValueTemplate = $('<div class="value"></div>');
@@ -108,10 +108,10 @@ export class MetadataComponent extends BaseComponent {
         '" title="' +
         this.options.data.content.copyToClipboard +
         '">\
-                                                <div class="copiedText">' +
+        <div class="copiedText">' +
         this.options.data.content.copiedToClipboard +
         " </div>\
-                                            </div>"
+        </div>"
     );
 
     this._$metadataGroups = $('<div class="groups"></div>');
@@ -182,11 +182,11 @@ export class MetadataComponent extends BaseComponent {
       return;
     }
 
-    const options: MetadataOptions = <MetadataOptions>{
+    const options: MetadataOptions = {
       canvases: this._data.canvases,
       licenseFormatter: this._data.licenseFormatter,
       range: this._data.range
-    };
+    } as MetadataOptions;
 
     this._metadataGroups = this._data.helper.getMetadata(options);
 
@@ -234,7 +234,7 @@ export class MetadataComponent extends BaseComponent {
     if (this._data.canvasExclude) {
       const canvasGroups: MetadataGroup[] = this._getCanvasGroups();
 
-      canvasGroups.forEach((canvasGroup: MetadataGroup, index: number) => {
+      canvasGroups.forEach((canvasGroup: MetadataGroup, _index: number) => {
         canvasGroup.items = this._exclude(
           canvasGroup.items,
           this._readCSV(<string>this._data.canvasExclude)
@@ -245,7 +245,7 @@ export class MetadataComponent extends BaseComponent {
     if (this._data.limitToRange) {
       const newGroups: MetadataGroup[] = [];
 
-      this._metadataGroups.forEach((group: MetadataGroup, index: number) => {
+      this._metadataGroups.forEach((group: MetadataGroup, _index: number) => {
         if (group.resource.isRange()) {
           newGroups.push(group);
         }
