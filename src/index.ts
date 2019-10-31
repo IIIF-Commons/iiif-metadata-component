@@ -591,9 +591,19 @@ export class MetadataComponent extends BaseComponent {
       e.preventDefault();
 
       const $a: JQuery = $(e.target);
-      const href: string = $a.prop("href");
+      const href: string = $a.attr('data-uv-navigate') || $a.prop('href');
 
       that.fire(Events.IIIF_VIEWER_LINK_CLICKED, href);
+    });
+
+    $metadataItem.on('click', '[data-uv-navigate]', (e) => {
+      e.preventDefault();
+
+      const $a: JQuery = $(e.target);
+      const href: string | null = $a.attr('data-uv-navigate') || null;
+      if (href) {
+          that.fire(Events.IIIF_VIEWER_LINK_CLICKED, href);
+      }
     });
 
     return $metadataItem;
