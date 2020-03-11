@@ -8,8 +8,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsviews/0.9.75/jsviews.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/core-js/2.4.1/core.min.js"></script>
-    <script src="https://unpkg.com/manifesto.js@4.0.0/dist-umd/manifesto.js"></script>
-    <script src="https://unpkg.com/@iiif/manifold@2.0.0/dist-umd/manifold.js"></script>
+    <script src="https://unpkg.com/manifesto.js@4.0.1/dist-umd/manifesto.js"></script>
+    <script src="https://unpkg.com/@iiif/manifold@2.0.2/dist-umd/manifold.js"></script>
     <script src="https://unpkg.com/xss@1.0.3/dist/xss.js"></script>
     <script src="https://unpkg.com/@edsilv/utils@1.0.2/dist-umd/utils.js"></script>
     <script src="https://unpkg.com/@edsilv/jquery-plugins@1.0.7/dist/jquery-plugins.js"></script>
@@ -74,7 +74,7 @@
 
         function getGroupOrder() {
             var ul = $(".metadataGroupOrder").children("ol");
-            return $.map($.makeArray(ul.children("li")), (val, i) => val.innerText).join(",");
+            return $.map($.makeArray(ul.children("li")), function(val, i){ val.innerText }).join(",");
         }
 
         function getRange(helper) {
@@ -156,7 +156,7 @@
                 var ul = $(".metadataGroupOrder").children("ol");
                 var groupOrder = $.makeArray(ul.children("li")).reverse();
                 ul.empty();
-                $.each(groupOrder, (i, v) => ul.append(v));
+                $.each(groupOrder, function(i, v){ ul.append(v) });
             });
 
             $('.testFixture').click(function () {
