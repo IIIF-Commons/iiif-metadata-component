@@ -19,10 +19,12 @@ export interface IMetadataComponentContent {
   description: string;
   imageHeader: string;
   less: string;
+  lessAriaLabelPrefix;
   license: string;
   logo: string;
   manifestHeader: string;
   more: string;
+  moreAriaLabelPrefix: string;
   noData: string;
   rangeHeader: string;
   rights: string;
@@ -142,10 +144,12 @@ export class MetadataComponent extends BaseComponent {
         description: "Description",
         imageHeader: "About the image",
         less: "less",
+        lessAriaLabelPrefix: "Less information: Hide",
         license: "License",
         logo: "Logo",
         manifestHeader: "About the item",
         more: "more",
+        moreAriaLabelPrefix: "More information: Reveal",
         noData: "No data to display",
         rangeHeader: "About the range",
         rights: "Rights",
@@ -403,13 +407,18 @@ export class MetadataComponent extends BaseComponent {
         const $metadataGroup: JQuery = this._buildMetadataGroup(metadataGroup);
 				this._$metadataGroups.append($metadataGroup);
 				const $value: any = $metadataGroup.find(".value");
+        const $label: any = $metadataGroup.find(".label");
 
         if (this._data.limit && this._data.content) {
           if (this._data.limitType === LimitType.LINES) {
+            const lessAriaLabel: string = [this._data.content.lessAriaLabelPrefix, $label.html()].join(' ');
+            const moreAriaLabel: string = [this._data.content.moreAriaLabelPrefix, $label.html()].join(' ');
             $value.toggleExpandTextByLines(
                 this._data.limit,
                 this._data.content.less,
                 this._data.content.more,
+                lessAriaLabel,
+                moreAriaLabel,
                 () => {}
               );
           } else if (this._data.limitType === LimitType.CHARS) {
