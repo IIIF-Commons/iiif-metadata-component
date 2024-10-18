@@ -25,6 +25,7 @@ export interface IMetadataComponentContent {
   more: string;
   noData: string;
   rangeHeader: string;
+  rights: string;
   sequenceHeader: string;
 }
 
@@ -147,6 +148,7 @@ export class MetadataComponent extends BaseComponent {
         more: "more",
         noData: "No data to display",
         rangeHeader: "About the range",
+        rights: "Rights",
         sequenceHeader: "About the sequence"
       },
       copiedMessageDuration: 2000,
@@ -512,7 +514,10 @@ export class MetadataComponent extends BaseComponent {
         case "logo":
           label = this._data.content.logo;
           break;
-      }
+        case "rights":
+          label = this._data.content.rights;
+          break;
+    }
     }
 
     label = this._sanitize(<string>label);
@@ -528,7 +533,7 @@ export class MetadataComponent extends BaseComponent {
     // if the value is a URI
     if (
       originalLabel &&
-      originalLabel.toLowerCase() === "license" &&
+      (originalLabel.toLowerCase() === "license" || originalLabel.toLowerCase() === "rights") &&
       urlPattern.exec(item.value[0].value) !== null
     ) {
       $value = this._buildMetadataItemURIValue(item.value[0].value);
