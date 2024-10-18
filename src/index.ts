@@ -407,18 +407,16 @@ export class MetadataComponent extends BaseComponent {
         const $metadataGroup: JQuery = this._buildMetadataGroup(metadataGroup);
 				this._$metadataGroups.append($metadataGroup);
 				const $value: any = $metadataGroup.find(".value");
-        const $label: any = $metadataGroup.find(".label");
+				const $items: any = $metadataGroup.find(".item");
 
         if (this._data.limit && this._data.content) {
           if (this._data.limitType === LimitType.LINES) {
-            const lessAriaLabel: string = [this._data.content.lessAriaLabelPrefix, $label.html()].join(' ');
-            const moreAriaLabel: string = [this._data.content.moreAriaLabelPrefix, $label.html()].join(' ');
-            $value.toggleExpandTextByLines(
+            $items.toggleExpandTextByLines(
                 this._data.limit,
                 this._data.content.less,
                 this._data.content.more,
-                lessAriaLabel,
-                moreAriaLabel,
+                this._data.content.lessAriaLabelPrefix,
+                this._data.content.moreAriaLabelPrefix,
                 () => {}
               );
           } else if (this._data.limitType === LimitType.CHARS) {
