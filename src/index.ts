@@ -20,6 +20,7 @@ export interface IMetadataComponentContent {
   imageHeader: string;
   less: string;
   license: string;
+  rights: string;
   logo: string;
   manifestHeader: string;
   more: string;
@@ -142,6 +143,7 @@ export class MetadataComponent extends BaseComponent {
         imageHeader: "About the image",
         less: "less",
         license: "License",
+        rights: "Rights",
         logo: "Logo",
         manifestHeader: "About the item",
         more: "more",
@@ -512,6 +514,10 @@ export class MetadataComponent extends BaseComponent {
         case "logo":
           label = this._data.content.logo;
           break;
+        case "rights":
+          label = this._data.content.rights;
+          break;
+        }
       }
     }
 
@@ -528,7 +534,7 @@ export class MetadataComponent extends BaseComponent {
     // if the value is a URI
     if (
       originalLabel &&
-      originalLabel.toLowerCase() === "license" &&
+      (originalLabel.toLowerCase() === "license" || originalLabel.toLowerCase() === "rights") &&
       urlPattern.exec(item.value[0].value) !== null
     ) {
       $value = this._buildMetadataItemURIValue(item.value[0].value);
