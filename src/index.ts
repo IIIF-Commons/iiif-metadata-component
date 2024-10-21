@@ -19,12 +19,15 @@ export interface IMetadataComponentContent {
   description: string;
   imageHeader: string;
   less: string;
+  lessAriaLabelPrefix: string;
   license: string;
   logo: string;
   manifestHeader: string;
   more: string;
+  moreAriaLabelPrefix: string;
   noData: string;
   rangeHeader: string;
+  rights: string;
   sequenceHeader: string;
 }
 
@@ -141,12 +144,15 @@ export class MetadataComponent extends BaseComponent {
         description: "Description",
         imageHeader: "About the image",
         less: "less",
+        lessAriaLabelPrefix: "Less information: Hide",
         license: "License",
         logo: "Logo",
         manifestHeader: "About the item",
         more: "more",
+        moreAriaLabelPrefix: "More information: Reveal",
         noData: "No data to display",
         rangeHeader: "About the range",
+        rights: "Rights",
         sequenceHeader: "About the sequence"
       },
       copiedMessageDuration: 2000,
@@ -401,13 +407,16 @@ export class MetadataComponent extends BaseComponent {
         const $metadataGroup: JQuery = this._buildMetadataGroup(metadataGroup);
 				this._$metadataGroups.append($metadataGroup);
 				const $value: any = $metadataGroup.find(".value");
+				const $items: any = $metadataGroup.find(".item");
 
         if (this._data.limit && this._data.content) {
           if (this._data.limitType === LimitType.LINES) {
-            $value.toggleExpandTextByLines(
+            $items.toggleExpandTextByLines(
                 this._data.limit,
                 this._data.content.less,
                 this._data.content.more,
+                this._data.content.lessAriaLabelPrefix,
+                this._data.content.moreAriaLabelPrefix,
                 () => {}
               );
           } else if (this._data.limitType === LimitType.CHARS) {
@@ -512,7 +521,10 @@ export class MetadataComponent extends BaseComponent {
         case "logo":
           label = this._data.content.logo;
           break;
-      }
+        case "rights":
+          label = this._data.content.rights;
+          break;
+    }
     }
 
     label = this._sanitize(<string>label);
@@ -528,7 +540,7 @@ export class MetadataComponent extends BaseComponent {
     // if the value is a URI
     if (
       originalLabel &&
-      originalLabel.toLowerCase() === "license" &&
+      (originalLabel.toLowerCase() === "license" || originalLabel.toLowerCase() === "rights") &&
       urlPattern.exec(item.value[0].value) !== null
     ) {
       $value = this._buildMetadataItemURIValue(item.value[0].value);
