@@ -19,7 +19,7 @@ export interface IMetadataComponentContent {
   description: string;
   imageHeader: string;
   less: string;
-  lessAriaLabelTemplate;
+  lessAriaLabelTemplate: string;
   license: string;
   logo: string;
   manifestHeader: string;
