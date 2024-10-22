@@ -593,24 +593,28 @@ export class MetadataComponent extends BaseComponent {
 
     const that = this;
 
-    $metadataItem.on("click", "a.iiif-viewer-link", e => {
-      e.preventDefault();
+    if ($metadataItem.find('a.iiif-viewer-link').length > 0) {
+      $metadataItem.on("click", "a.iiif-viewer-link", e => {
+        e.preventDefault();
 
-      const $a: JQuery = $(e.target);
-      const href: string = $a.attr('data-uv-navigate') || $a.prop('href');
+        const $a: JQuery = $(e.target);
+        const href: string = $a.attr('data-uv-navigate') || $a.prop('href');
 
-      that.fire(Events.IIIF_VIEWER_LINK_CLICKED, href);
-    });
+        that.fire(Events.IIIF_VIEWER_LINK_CLICKED, href);
+      });
+    };
 
-    $metadataItem.on('click', '[data-uv-navigate]', (e) => {
-      e.preventDefault();
+    if ($metadataItem.find('[data-uv-navigate]').length > 0) {
+      $metadataItem.on('click', '[data-uv-navigate]', (e) => {
+        e.preventDefault();
 
-      const $a: JQuery = $(e.target);
-      const href: string | null = $a.attr('data-uv-navigate') || null;
-      if (href) {
-          that.fire(Events.IIIF_VIEWER_LINK_CLICKED, href);
-      }
-    });
+        const $a: JQuery = $(e.target);
+        const href: string | null = $a.attr('data-uv-navigate') || null;
+        if (href) {
+            that.fire(Events.IIIF_VIEWER_LINK_CLICKED, href);
+        }
+      });
+    };
 
     return $metadataItem;
   }
