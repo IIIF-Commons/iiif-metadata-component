@@ -591,7 +591,6 @@ export class MetadataComponent extends BaseComponent {
       $metadataItem.on("click", "a.iiif-viewer-link", e => {
         e.preventDefault();
 
-        console.log(e)
         const $a: JQuery = $(e.target);
         const href: string = $a.attr('data-uv-navigate') || $a.prop('href');
 
@@ -602,7 +601,6 @@ export class MetadataComponent extends BaseComponent {
     if ($metadataItem.find('[data-uv-navigate]').length > 0) {
       $metadataItem.on('click', '[data-uv-navigate]', (e) => {
         e.preventDefault();
-        console.log(e)
 
         const $a: JQuery = $(e.target);
         const href: string | null = $a.attr('data-uv-navigate') || null;
