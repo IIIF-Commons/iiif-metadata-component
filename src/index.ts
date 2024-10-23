@@ -517,7 +517,6 @@ export class MetadataComponent extends BaseComponent {
         case "rights":
           label = this._data.content.rights;
           break;
-        }
       }
     }
 
