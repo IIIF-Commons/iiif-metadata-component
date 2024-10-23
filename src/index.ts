@@ -21,6 +21,7 @@ export interface IMetadataComponentContent {
   less: string;
   lessAriaLabelTemplate: string;
   license: string;
+  rights: string;
   logo: string;
   manifestHeader: string;
   more: string;
@@ -145,6 +146,7 @@ export class MetadataComponent extends BaseComponent {
         less: "less",
         lessAriaLabelTemplate: "Less information: Hide {0}",
         license: "License",
+        rights: "Rights",
         logo: "Logo",
         manifestHeader: "About the item",
         more: "more",
@@ -519,6 +521,9 @@ export class MetadataComponent extends BaseComponent {
         case "logo":
           label = this._data.content.logo;
           break;
+        case "rights":
+          label = this._data.content.rights;
+          break;
       }
     }
 
@@ -535,7 +540,7 @@ export class MetadataComponent extends BaseComponent {
     // if the value is a URI
     if (
       originalLabel &&
-      originalLabel.toLowerCase() === "license" &&
+      (originalLabel.toLowerCase() === "license" || originalLabel.toLowerCase() === "rights") &&
       urlPattern.exec(item.value[0].value) !== null
     ) {
       $value = this._buildMetadataItemURIValue(item.value[0].value);
@@ -594,24 +599,28 @@ export class MetadataComponent extends BaseComponent {
 
     const that = this;
 
-    $metadataItem.on("click", "a.iiif-viewer-link", e => {
-      e.preventDefault();
+    if ($metadataItem.find('a.iiif-viewer-link').length > 0) {
+      $metadataItem.on("click", "a.iiif-viewer-link", e => {
+        e.preventDefault();
 
-      const $a: JQuery = $(e.target);
-      const href: string = $a.attr('data-uv-navigate') || $a.prop('href');
+        const $a: JQuery = $(e.target);
+        const href: string = $a.attr('data-uv-navigate') || $a.prop('href');
 
-      that.fire(Events.IIIF_VIEWER_LINK_CLICKED, href);
-    });
+        that.fire(Events.IIIF_VIEWER_LINK_CLICKED, href);
+      });
+    };
 
-    $metadataItem.on('click', '[data-uv-navigate]', (e) => {
-      e.preventDefault();
+    if ($metadataItem.find('[data-uv-navigate]').length > 0) {
+      $metadataItem.on('click', '[data-uv-navigate]', (e) => {
+        e.preventDefault();
 
-      const $a: JQuery = $(e.target);
-      const href: string | null = $a.attr('data-uv-navigate') || null;
-      if (href) {
-          that.fire(Events.IIIF_VIEWER_LINK_CLICKED, href);
-      }
-    });
+        const $a: JQuery = $(e.target);
+        const href: string | null = $a.attr('data-uv-navigate') || null;
+        if (href) {
+            that.fire(Events.IIIF_VIEWER_LINK_CLICKED, href);
+        }
+      });
+    };
 
     return $metadataItem;
   }
