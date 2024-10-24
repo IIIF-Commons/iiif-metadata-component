@@ -8,6 +8,7 @@ import {
 } from "@iiif/manifold";
 import { BaseComponent, IBaseComponentOptions } from "@iiif/base-component";
 import { Clipboard, Device, Strings } from "@edsilv/utils";
+import toggleExpandTextByLines from "./toggleExpandTextByLines";
 
 type csvvalue = string | null;
 
@@ -19,11 +20,13 @@ export interface IMetadataComponentContent {
   description: string;
   imageHeader: string;
   less: string;
+  lessAriaLabelTemplate: string;
   license: string;
   rights: string;
   logo: string;
   manifestHeader: string;
   more: string;
+  moreAriaLabelTemplate: string;
   noData: string;
   rangeHeader: string;
   sequenceHeader: string;
@@ -142,11 +145,13 @@ export class MetadataComponent extends BaseComponent {
         description: "Description",
         imageHeader: "About the image",
         less: "less",
+        lessAriaLabelTemplate: "Less information: Hide {0}",
         license: "License",
         rights: "Rights",
         logo: "Logo",
         manifestHeader: "About the item",
         more: "more",
+        moreAriaLabelTemplate: "More information: Reveal {0}",
         noData: "No data to display",
         rangeHeader: "About the range",
         sequenceHeader: "About the sequence"
@@ -403,14 +408,18 @@ export class MetadataComponent extends BaseComponent {
         const $metadataGroup: JQuery = this._buildMetadataGroup(metadataGroup);
 				this._$metadataGroups.append($metadataGroup);
 				const $value: any = $metadataGroup.find(".value");
+        const $items: any = $metadataGroup.find(".item");
 
         if (this._data.limit && this._data.content) {
           if (this._data.limitType === LimitType.LINES) {
-            $value.toggleExpandTextByLines(
+            toggleExpandTextByLines(
+                $items,
                 this._data.limit,
                 this._data.content.less,
                 this._data.content.more,
-                () => {}
+                () => {},
+                this._data.content.lessAriaLabelTemplate,
+                this._data.content.moreAriaLabelTemplate,
               );
           } else if (this._data.limitType === LimitType.CHARS) {
             $value.ellipsisHtmlFixed(this._data.limit, () => {});
