@@ -8,6 +8,7 @@ import {
 } from "@iiif/manifold";
 import { BaseComponent, IBaseComponentOptions } from "@iiif/base-component";
 import { Clipboard, Device, Strings } from "@edsilv/utils";
+import toggleExpandTextByLines from "./toggleExpandTextByLines";
 
 type csvvalue = string | null;
 
@@ -411,7 +412,8 @@ export class MetadataComponent extends BaseComponent {
 
         if (this._data.limit && this._data.content) {
           if (this._data.limitType === LimitType.LINES) {
-            $items.toggleExpandTextByLines(
+            toggleExpandTextByLines(
+                $items,
                 this._data.limit,
                 this._data.content.less,
                 this._data.content.more,
