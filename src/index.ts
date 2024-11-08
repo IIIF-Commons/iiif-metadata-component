@@ -1,4 +1,5 @@
-import { Canvas, Language, Range, Utils as Utils } from "manifesto.js";
+// import { Canvas, Language, PropertyValue, LocalizedValue, Range, Utils as Utils } from "manifesto.js";
+import { Canvas, Range, Utils as Utils } from "manifesto.js";
 import {
   Helper,
   IMetadataItem,
@@ -539,51 +540,62 @@ export class MetadataComponent extends BaseComponent {
 
     let $value: JQuery;
 
+    const valueLocale: string = this._getValueLocale(item);
+    const metadataItemValue = item.value?.getValue(valueLocale) as string
+
     // if the value is a URI
     if (
       originalLabel &&
       (originalLabel.toLowerCase() === "license" || originalLabel.toLowerCase() === "rights") &&
-      urlPattern.exec(item.value[0].value) !== null
+      urlPattern.exec(metadataItemValue) !== null
     ) {
-      $value = this._buildMetadataItemURIValue(item.value[0].value);
+      $value = this._buildMetadataItemURIValue(metadataItemValue);
       $values.append($value);
     } else {
       if (this._data.showAllLanguages && item.value && item.value.length > 1) {
-        // display all values in each locale
+        let localesChecked: string[] = [];
         for (let i = 0; i < item.value.length; i++) {
-          const translation: Language = item.value[i];
-          $value = this._buildMetadataItemValue(
-            translation.value,
-            translation.locale
-          );
-          $values.append($value);
+          const locale = item.value[i]._locale;
+          if (locale && localesChecked.includes(locale)) continue;
+          let localizedValue: string | null = null;
+
+          if (locale) {
+            localizedValue = item.value.getValue(locale, '<br/>')
+
+            if (localizedValue) {
+              $value = this._buildMetadataItemValue(
+                localizedValue,
+                locale 
+              );
+              $values.append($value);
+              localesChecked.push(locale);
+            }
+          }
         }
       } else {
         const valueLocale: string = this._getValueLocale(item);
         let valueFound: boolean = false;
 
-        // display all values in the item's locale
-        for (let i = 0; i < item.value.length; i++) {
-          const translation: Language = item.value[i];
+        const values = item.getValues(valueLocale);
 
-          if (valueLocale.toLowerCase() === translation.locale.toLowerCase()) {
-            valueFound = true;
-            $value = this._buildMetadataItemValue(
-              translation.value,
-              translation.locale
-            );
-            $values.append($value);
+        for (const value of values) {
+          if (value) {
+          valueFound = true;
+          $value = this._buildMetadataItemValue(
+            value,
+            valueLocale
+          );
+          $values.append($value);
           }
         }
 
         // if no values were found in the current locale, default to the first.
         if (!valueFound) {
-          const translation: Language = item.value[0];
-
-          if (translation) {
+          const value = item.getValue()
+          if (value) {
             $value = this._buildMetadataItemValue(
-              translation.value,
-              translation.locale
+              value,
+              valueLocale
             );
             $values.append($value);
           }
@@ -634,7 +646,7 @@ export class MetadataComponent extends BaseComponent {
 
     const defaultLocale: string = this._data.helper.options.locale as string;
 
-    if (item.label.length) {
+    if (item.label?.length) {
       const labelLocale: string = item.label[0].locale;
 
       if (labelLocale.toLowerCase() !== defaultLocale.toLowerCase()) {
@@ -664,7 +676,7 @@ export class MetadataComponent extends BaseComponent {
     return defaultLocale;
   }
 
-  private _buildMetadataItemValue(value: string, locale: string): JQuery {
+  private _buildMetadataItemValue(value: string, locale?: string): JQuery {
     value = <string>this._sanitize(value);
     value = value.replace("\n", "<br>"); // replace \n with <br>
     const $value: JQuery = this._$metadataItemValueTemplate.clone();
