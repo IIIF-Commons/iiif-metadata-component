@@ -1,4 +1,3 @@
-// import { Canvas, Language, PropertyValue, LocalizedValue, Range, Utils as Utils } from "manifesto.js";
 import { Canvas, Range, Utils as Utils } from "manifesto.js";
 import {
   Helper,
@@ -556,19 +555,15 @@ export class MetadataComponent extends BaseComponent {
         let localesChecked: string[] = [];
         for (let i = 0; i < item.value.length; i++) {
           const locale = item.value[i]._locale;
-          if (locale && localesChecked.includes(locale)) continue;
-          let localizedValue: string | null = null;
-
-          if (locale) {
-            localizedValue = item.value.getValue(locale, '<br/>')
-
+          if (locale && !localesChecked.includes(locale)) {
+            const localizedValue = item.getValue(locale, '<br/>')
             if (localizedValue) {
               $value = this._buildMetadataItemValue(
                 localizedValue,
-                locale 
+                locale
               );
-              $values.append($value);
               localesChecked.push(locale);
+              $values.append($value);
             }
           }
         }
@@ -580,12 +575,12 @@ export class MetadataComponent extends BaseComponent {
 
         for (const value of values) {
           if (value) {
-          valueFound = true;
-          $value = this._buildMetadataItemValue(
-            value,
-            valueLocale
-          );
-          $values.append($value);
+            valueFound = true;
+            $value = this._buildMetadataItemValue(
+              value,
+              valueLocale
+            );
+            $values.append($value);
           }
         }
 
@@ -692,8 +687,9 @@ export class MetadataComponent extends BaseComponent {
       }
     });
 
-    // rtl?
+    // add language attribute and handle rtl
     if (locale) {
+      $value.prop('lang', locale);
       this._addReadingDirection($value, locale);
     }
 
