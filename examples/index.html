@@ -23,6 +23,7 @@
 
 <body>
     <div class="testFixtureSelection">
+        <p>Select test fixture: </p>
         <button class="testFixture" data-json="http://wellcomelibrary.org/iiif/b18035978/manifest">Manifest metadata</button>
         <!-- <button class="testFixture" data-json="https://iiif.riksarkivet.se/arkis!C0000263/manifest">Canvas metadata</button> -->
         <!-- <button class="testFixture" data-json="https://iiif.riksarkivet.se/arkis!F0001185/manifest">Merge source reference</button> -->
@@ -40,6 +41,12 @@
         <button class="testFixture" data-json="https://iiif-commons.github.io/iiif-av-component/examples/data/bl/sounds-tests/loose-ends/C1685_98_P3.json">loose
             ends</button>
         <button class="testFixture" data-json="https://norman.hrc.utexas.edu/notDM/objectManifest/p15878coll1v3/37">v3 rights, logo, required statement</button>
+    </div>
+
+    <div class="testInput">
+        <p>Or load from URL: </p>
+        <input type="text" id="inputIIIF" placeholder="Enter IIIF URL" />
+        <button id="loadIIIF">Load</button>
     </div>
 
     <div class="options">
@@ -162,6 +169,13 @@
 
             $('.testFixture').click(function () {
                 loadManifest($(this).data('json'));
+            });
+
+            $('#loadIIIF').click(function () {
+                var jsonUrl = $('#inputIIIF').val();
+                if (jsonUrl) {
+                    loadManifest(jsonUrl);
+                }
             });
 
         });
