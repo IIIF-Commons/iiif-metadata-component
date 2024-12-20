@@ -30,7 +30,7 @@
   },
   "homepage": "https://github.com/iiif-commons/iiif-metadata-component#readme",
   "devDependencies": {
-    "@types/node": "^8.10.52",
+    "@types/node": "^18",
     "@types/jquery": "3.3.14",
     "cross-env": "^5.2.1",
     "dts-bundle-generator": "^9.5.1",
