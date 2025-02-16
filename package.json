@@ -41,7 +41,7 @@
     "typescript": "^5",
     "uglify-js": "3.4.9",
     "webpack-cli": "^3.1.2",
-    "webpack": "^4.28.3"
+    "webpack": "^5.98.0"
   },
   "dependencies": {
     "@edsilv/jquery-plugins": "1.0.7",
